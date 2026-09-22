@@ -18,6 +18,14 @@ function compileBook(outline: BookOutline, chapters: GeneratedChapter[]) {
   return `# ${outline.bookTitle}\n\n_${outline.subtitle}_\n\nEstimated length: ${outline.estimatedTotalPages} pages\n\n## Table of Contents\n\n${contents}\n\n---\n\n${body}\n`;
 }
 
+async function readApiResponse(response: Response) {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.includes("application/json")) {
+    throw new Error("The deployed API route was not found. Redeploy the app as a Next.js server, not a static export.");
+  }
+  return response.json() as Promise<{ error?: string } & Record<string, unknown>>;
+}
+
 export default function Home() {
   const [topic, setTopic] = useState("");
   const [outline, setOutline] = useState<BookOutline | null>(null);
@@ -31,7 +39,7 @@ export default function Home() {
     event.preventDefault(); setLoading(true); setError(""); setOutline(null); setChapters([]); setActiveChapter(null);
     try {
       const response = await fetch("/api/learn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ topic }) });
-      const data = await response.json();
+      const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error ?? "The outline could not be created.");
       setOutline(data as BookOutline);
     } catch (requestError) {
@@ -51,7 +59,7 @@ export default function Home() {
     try {
       const nextChapter = outline.tableOfContents.find((candidate) => candidate.chapterNumber === chapter.chapterNumber + 1);
       const response = await fetch("/api/learn/chapter", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ bookTitle: outline.bookTitle, chapter, nextChapterTitle: nextChapter?.chapterTitle }) });
-      const data = await response.json();
+      const data = await readApiResponse(response);
       if (!response.ok) throw new Error(data.error ?? "The chapter could not be generated.");
       setChapters((current) => [...current.filter((item) => item.chapterNumber !== chapter.chapterNumber), data as GeneratedChapter].sort((first, second) => first.chapterNumber - second.chapterNumber));
     } catch (requestError) {

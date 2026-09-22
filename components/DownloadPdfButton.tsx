@@ -23,7 +23,9 @@ export default function DownloadPdfButton({
         body: JSON.stringify({ bookTitle, markdown }),
       });
       if (!response.ok) {
-        const data = await response.json().catch(() => null) as { error?: string } | null;
+        const data = response.headers.get("content-type")?.includes("application/json")
+          ? await response.json().catch(() => null) as { error?: string } | null
+          : null;
         throw new Error(data?.error ?? "The PDF could not be generated.");
       }
       const url = URL.createObjectURL(await response.blob());
