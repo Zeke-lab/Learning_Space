@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 import { NextRequest, NextResponse } from "next/server";
 
 import { markdownToHtml } from "@/lib/markdown-html";
@@ -43,7 +44,11 @@ export async function POST(request: NextRequest) {
       pre { white-space: pre-wrap; font-family: "Noto Sans Myanmar", sans-serif; }
     </style></head><body>${markdownToHtml(body.markdown)}</body></html>`;
 
-    browser = await puppeteer.launch({ headless: true });
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath(),
+      headless: true,
+    });
     const page = await browser.newPage();
     await page.setContent(html);
     await page.evaluate(() => document.fonts.ready);
