@@ -6,7 +6,7 @@ import { generateGeminiJson } from "@/lib/gemini-rest";
 import { outlineSystemPrompt, outlineUserPrompt } from "@/lib/prompts";
 
 const requestSchema = z.object({
-  topic: z.string().trim().min(1).max(200),
+  topic: z.string().trim().min(1).max(10_000),
 });
 
 export async function POST(request: Request) {

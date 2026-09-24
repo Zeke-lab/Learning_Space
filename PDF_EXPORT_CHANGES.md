@@ -226,4 +226,19 @@ The Markdown-to-PDF export now works successfully:
 
 The final Markdown-to-PDF transfer is verified as successful, including the Myanmar text rendering path.
 
+## Chromium Deployment Fix
+
+The serverless PDF route initially failed with this error:
+
+```text
+The input directory "/var/task/node_modules/@sparticuz/chromium/bin" does not exist.
+```
+
+This happened because the bundler relocated `@sparticuz/chromium`, breaking the package's relative path lookup for its Chromium binary files. The Next.js configuration was updated to:
+
+- Externalize `@sparticuz/chromium` with `serverExternalPackages`.
+- Include `node_modules/@sparticuz/chromium/bin/**` in `outputFileTracingIncludes` for the `/api/export-pdf` route.
+
+The production build passed after this change with `npm run build`. The configuration change must be committed and pushed so the deployment provider uses it during the next deployment. The `.env` file must remain uncommitted; configure `GOOGLE_GENERATIVE_AI_API_KEY` in the deployment provider's environment variables instead.
+
 
