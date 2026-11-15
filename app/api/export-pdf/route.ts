@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
@@ -16,6 +16,36 @@ function escapeHtml(value: string) {
     '"': "&quot;",
     "'": "&#039;",
   })[character] ?? character);
+}
+
+async function getBrowserExecutablePath() {
+  const configuredPath = process.env.PDF_BROWSER_EXECUTABLE_PATH;
+  if (configuredPath) return configuredPath;
+
+  if (process.platform === "win32") {
+    const candidates = [
+      path.join(process.env.PROGRAMFILES ?? "C:\\Program Files", "Google", "Chrome", "Application", "chrome.exe"),
+      path.join(process.env["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)", "Google", "Chrome", "Application", "chrome.exe"),
+      path.join(process.env.LOCALAPPDATA ?? "", "Google", "Chrome", "Application", "chrome.exe"),
+      path.join(process.env.PROGRAMFILES ?? "C:\\Program Files", "Microsoft", "Edge", "Application", "msedge.exe"),
+      path.join(process.env["PROGRAMFILES(X86)"] ?? "C:\\Program Files (x86)", "Microsoft", "Edge", "Application", "msedge.exe"),
+    ];
+
+    for (const candidate of candidates) {
+      try {
+        await access(candidate);
+        return candidate;
+      } catch {
+        continue;
+      }
+    }
+
+    throw new Error(
+      "PDF export needs Google Chrome or Microsoft Edge installed on the server. Set PDF_BROWSER_EXECUTABLE_PATH if it is installed in a custom location.",
+    );
+  }
+
+  return chromium.executablePath();
 }
 
 export async function POST(request: NextRequest) {
@@ -44,9 +74,10 @@ export async function POST(request: NextRequest) {
       pre { white-space: pre-wrap; font-family: "Noto Sans Myanmar", sans-serif; }
     </style></head><body>${markdownToHtml(body.markdown)}</body></html>`;
 
+    const browserExecutablePath = await getBrowserExecutablePath();
     browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      args: process.platform === "win32" ? [] : chromium.args,
+      executablePath: browserExecutablePath,
       headless: true,
     });
     const page = await browser.newPage();
@@ -66,6 +97,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "The PDF could not be generated.";
+    console.error("PDF export failed", error);
     return NextResponse.json({ error: message }, { status: 500 });
   } finally {
     await browser?.close();

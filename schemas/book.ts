@@ -21,3 +21,13 @@ export const generatedChapterSchema = z.object({
   chapterTitle: z.string().min(1),
   markdown: z.string().min(1),
 });
+
+export function minimumChapterMarkdownLength(estimatedPages: number) {
+  return Math.min(8_000, Math.max(2_500, estimatedPages * 300));
+}
+
+export function hasCompleteChapterSections(markdown: string) {
+  return ["I", "II", "III", "IV"].every((part) =>
+    new RegExp(`(?:^|\\n)\\s{0,3}#{1,6}\\s+Part\\s+${part}\\b`, "i").test(markdown),
+  );
+}

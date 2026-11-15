@@ -17,10 +17,15 @@ The outline is generated first so the book has a coherent prerequisite-to-advanc
 - [x] Generate chapters individually from the outline.
 - [x] Assemble generated chapters into `Complete_Book.md` content in the browser.
 - [x] Download the assembled Markdown file.
-- [ ] Persist the outline and chapters between browser sessions.
+- [x] Persist the outline and chapters between browser sessions using browser localStorage.
 - [ ] Export the assembled Markdown to PDF or EPUB.
 
-The MVP does not include authentication, payments, or a database.
+## Database and Data Storage Decision
+
+- [ ] No production database is currently in use for the MVP.
+- [x] Current persistence is browser localStorage for the generated outline, chapter content, and in-progress book session.
+- [ ] If we later add cloud storage, we should store the generated book, PDFs, and exports in a database (for example Postgres, Supabase, or Firebase) and refetch them into the UI when the user revisits the workspace.
+- [ ] PDF files and exported books should be stored in a durable backend store when we ship multi-device or authenticated workflows.
 
 ## Architecture Decisions
 
@@ -30,9 +35,133 @@ The MVP does not include authentication, payments, or a database.
 - AI access: server-side API routes only.
 - AI provider: Gemini through `@ai-sdk/google`.
 - Output validation: Zod schemas with AI SDK structured output.
-- Initial persistence: browser local storage.
+- Initial persistence: browser localStorage, not a database.
 - Assembly: deterministic Markdown generation from validated outline and chapter records.
 - Export: Markdown download first; PDF/eBook conversion later.
+
+## Prompt Quality Fixes Implemented
+
+- [x] The chapter-writing prompt now instructs the model to sound like a learner-first tutor, not a static reference summary.
+- [x] The prompt explicitly avoids repeating the same definition or explanation across chapters.
+- [x] The prompt references earlier concepts only when needed for continuity, rather than re-explaining them.
+- [x] The prompt prefers current stable technology patterns and modern syntax to reduce version drift between examples and the current stack.
+
+## Phase 1: Project Foundation
+
+- [x] Create the Next.js application with TypeScript, Tailwind, ESLint, and App Router.
+- [x] Install `ai`, `zod`, `lucide-react`, and `@ai-sdk/google`.
+- [x] Add `.env.local.example` with `GOOGLE_GENERATIVE_AI_API_KEY`.
+- [x] Confirm lint, TypeScript, and production build support the app foundation.
+- [ ] Add a real local `.env.local` API key without committing it.
+
+## Phase 2: Book Data Contract
+
+- [x] Define `BookChapter` with chapter number, title, page estimate, goal, sections, and prerequisites.
+- [x] Define `BookOutline` with title, subtitle, total pages, and table of contents.
+- [x] Define `GeneratedChapter` with chapter metadata and Markdown.
+- [x] Validate outline responses with Zod.
+- [x] Validate generated chapter responses with Zod.
+- [ ] Add schema tests for missing fields, invalid page counts, and excessive chapter counts.
+
+## Phase 3: Outline Generator
+
+- [x] Create the master outline system prompt.
+- [x] Require foundational chapters before core and advanced chapters.
+- [x] Require strict structured output.
+- [x] Create `POST /api/learn` as the outline endpoint.
+- [x] Validate topic input and reject empty or excessively long topics.
+- [x] Return safe errors without exposing provider details.
+- [ ] Add a dedicated `/api/book/outline` route name if the API is separated from the earlier prototype route.
+- [ ] Test outline generation with Vector Databases, Docker, and JavaScript async/await.
+
+## Phase 4: Sequential Chapter Generator
+
+- [x] Create the chapter-writing system prompt.
+- [x] Include chapter title, goal, sections, prerequisites, estimated pages, and next chapter.
+- [x] Require beginner-friendly explanations and reproducible, fully explained procedures instead of terse instructions.
+- [x] Require workflow-tool examples to explain the trigger, each node, configuration, test, and expected result.
+- [x] Reject chapter output that is too short for its estimated page count or omits required sections.
+- [x] Require the four-part Markdown structure:
+  - [ ] Chapter header, goal, and reading time.
+  - [ ] Part I: foundational layer and analogies.
+  - [ ] Part II: core concept, mechanics, comparison, ASCII diagram, and takeaways.
+  - [ ] Part III: practical code or real-world example.
+  - [ ] Part IV: recap and next chapter preview.
+- [x] Create `POST /api/learn/chapter`.
+- [x] Generate chapters independently so one failure does not discard the book outline.
+- [ ] Add server-side rate limiting and retry/backoff handling.
+- [ ] Add chapter output length limits appropriate for the selected model.
+
+## Phase 5: Book Workspace UI
+
+- [x] Replace the learning-node page with the AI Book Studio page.
+- [x] Add topic search form.
+- [x] Display book title, subtitle, estimated pages, chapter count, and generation progress.
+- [x] Display the table of contents in a responsive chapter table.
+- [x] Add an individual `Write chapter` action.
+- [x] Add a sequential `Write all chapters` action that stops and reports an error if any chapter fails.
+- [x] Show chapter generation state and completed state.
+- [x] Display a live assembled Markdown manuscript.
+- [x] Add a Markdown download action.
+- [ ] Add chapter preview and editing before assembly.
+- [ ] Add a sequential `Generate next chapter` action.
+- [ ] Add a cancel action for long-running generation.
+- [x] Add a clear-book action to reset the current outline and generated chapters.
+
+## Phase 6: Persistence and Assembly
+
+- [x] Define a `BookSession` storage shape for the current browser session.
+- [x] Save the outline to local storage after generation.
+- [x] Save each generated chapter to local storage.
+- [x] Restore the current book after refresh.
+- [ ] Add a book history view.
+- [x] Add a clear-book action with confirmation.
+- [x] Assemble title, subtitle, page estimate, Markdown TOC, and chapter content deterministically.
+- [ ] Save the assembled result as `Complete_Book.md` in a server-side workspace when persistence is added.
+
+## Phase 7: Publishing
+
+- [ ] Add a Markdown preview mode.
+- [ ] Add PDF export with a maintained converter or server-side rendering path.
+- [ ] Add EPUB export.
+- [ ] Add page-break controls between chapters.
+- [ ] Add code syntax highlighting to published output.
+- [ ] Add cover-page and metadata options.
+- [ ] Verify generated links and chapter anchors in the exported document.
+
+## Phase 8: Testing and Quality
+
+- [x] Validate invalid outline requests return `400` before calling Gemini.
+- [ ] Add unit tests for outline and chapter schemas.
+- [ ] Add endpoint tests for invalid request bodies.
+- [ ] Add tests for malformed AI output.
+- [ ] Add tests that reject short/incomplete chapters and accept sufficiently detailed chapters.
+- [ ] Test outline generation, chapter regeneration, assembly, and download manually.
+- [ ] Test keyboard-only navigation and visible focus states.
+- [ ] Test mobile and desktop table layouts.
+- [ ] Confirm no API key appears in client code or browser responses.
+- [ ] Run lint, TypeScript, and production build before each milestone.
+
+## Definition Of Done For MVP
+
+The MVP is complete when a user can:
+
+1. Enter a technical topic.
+2. Receive a coherent multi-chapter outline.
+3. Review the chapter goals, sections, prerequisites, and page estimates.
+4. Generate chapters individually and retry a chapter without losing the outline.
+5. See the assembled Markdown manuscript.
+6. Download the result as a Markdown book.
+
+## Deferred Enhancements
+
+- Authentication and cloud book storage.
+- Team collaboration and comments.
+- Multiple AI providers.
+- Citation and source management.
+- Automatic fact checking.
+- Chapter-level quizzes and learner progress.
+- Visual graph navigation.
 
 ## Phase 1: Project Foundation
 
@@ -144,3 +273,39 @@ The MVP is complete when a user can:
 - Automatic fact checking.
 - Chapter-level quizzes and learner progress.
 - Visual graph navigation.
+
+
+request form the first learner to test my website
+
+
+
+
+
+
+
+
+## belows are just note that i have to do and it will not in the todo list, i will have to do manually
+
+
+
+
+--- explore that i can create the ai agent using md files to generate the pdf file as a tutor.
+
+
+--- for the table and the workflow, now currently use md file, they are not formatted
+
++-----------------------------------------------------------+
+| Input Items ($input.all()) |
+| [ |
+| { json: { "id": 1, "price": 100, "active": true } }, |
+| { json: { "id": 2, "price": 200, "active": false } } |
+| ] |
++-----------------------------+-----------------------------+
+the pdf file result is just like that, we can't know which is represent for what as there are many - , + and |. solve that problem to produce real table and real good looking workflow (may be generate with image or better technology that support visualization).
+
+
+--- put prediscussion session. when i have the idea to teach something technology and i already write the cirrculum, but i don't know that it will be ok or not and were to start to teach. at that time, i can discuss and will recive the final prompt to generate the pdf file. so i just copy and paste this prompt to my excisting input box that can generate the pdf.
+the prediscussion session will be similar to the chat box like other ai chat box(gemini , gpt , claude) and will also have to support to input pdf file for brainstroming. and it lead to the final prompt by asking and gathering the requirement that need to generate the pdf file.
+
+
+prepare this learning space project for production and agent. as this project tend to put to my career portfolio, be secure and have to count the users.

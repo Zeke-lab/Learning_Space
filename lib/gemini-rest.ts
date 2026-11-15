@@ -45,7 +45,12 @@ function parseJson(text: string) {
   }
 }
 
-export async function generateGeminiJson<T>(system: string, prompt: string, schema: z.ZodType<T>) {
+export async function generateGeminiJson<T>(
+  system: string,
+  prompt: string,
+  schema: z.ZodType<T>,
+  responseSchema?: Record<string, unknown>,
+) {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
     throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is missing.");
@@ -60,7 +65,11 @@ export async function generateGeminiJson<T>(system: string, prompt: string, sche
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "application/json" },
+      generationConfig: {
+        responseMimeType: "application/json",
+        maxOutputTokens: 16_384,
+        ...(responseSchema ? { responseSchema } : {}),
+      },
     }),
   };
 
@@ -89,10 +98,24 @@ export async function generateGeminiJson<T>(system: string, prompt: string, sche
   }
 
   const payload = (await response.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
   };
-  const text = payload.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini returned no content.");
+  const candidate = payload.candidates?.[0];
+  const text = candidate?.content?.parts?.[0]?.text;
+  if (!text) {
+    throw new Error(
+      candidate?.finishReason === "MAX_TOKENS"
+        ? "Gemini stopped before completing the JSON because the response reached its output-token limit."
+        : "Gemini returned no content.",
+    );
+  }
 
-  return schema.parse(parseJson(text));
+  try {
+    return schema.parse(parseJson(text));
+  } catch (error) {
+    if (candidate?.finishReason === "MAX_TOKENS") {
+      throw new Error("Gemini stopped before completing the JSON because the response reached its output-token limit.");
+    }
+    throw error;
+  }
 }
