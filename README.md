@@ -40,6 +40,8 @@ Use Node.js 22 for local builds and deployment. PDF export renders Markdown tabl
 
 After deploying a PDF formatting change, download the PDF again from the saved book. Previously downloaded PDFs do not change. Run `npm test` for Markdown rendering regression checks; `tests/fixtures/pdf-formatting.md` provides a mixed Burmese/table/diagram sample for visual PDF checks.
 
+`Write all chapters` runs up to two chapter requests at the same time. Each row shows its own writing or retry state, and completed chapters stay in outline order. A failure stops new requests; requests already in flight finish and save normally. Use `Write all chapters` again to resume missing chapters, or retry an individual chapter.
+
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 

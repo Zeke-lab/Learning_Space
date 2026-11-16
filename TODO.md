@@ -99,7 +99,7 @@ The outline is generated first so the book has a coherent prerequisite-to-advanc
 - [x] Display book title, subtitle, estimated pages, chapter count, and generation progress.
 - [x] Display the table of contents in a responsive chapter table.
 - [x] Add an individual `Write chapter` action.
-- [x] Add a sequential `Write all chapters` action that stops and reports an error if any chapter fails.
+- [x] Add a `Write all chapters` action with at most two concurrent requests. On failure, stop starting new chapters, wait for in-flight chapters to finish, and retain completed chapters for retry/resume.
 - [x] Show chapter generation state and completed state.
 - [x] Display a live assembled Markdown manuscript.
 - [x] Add a Markdown download action.
