@@ -1,244 +1,100 @@
 # PDF Export Changes
 
-## Starting Point: Previous Edition
+Last reviewed: 2026-11-16. This document describes the current server-side implementation first; earlier approaches are historical and are not active export paths.
 
-The previous edition had these export actions:
+## Current download flow
 
-- **Download Markdown** created a `.md` file from the compiled manuscript.
-- **Save as PDF** opened a browser print window and called `window.print()`.
-- The browser print flow required the user to choose **Save to PDF** manually.
-- The print document used the browser's available Myanmar fonts:
-  - `Myanmar Text`
-  - `Noto Sans Myanmar`
-- There was no bundled PDF font.
+1. `app/page.tsx` assembles validated chapters into Markdown in outline order.
+2. `components/DownloadPdfButton.tsx` sends the book title and Markdown to `POST /api/export-pdf`.
+3. `lib/markdown-html.ts` uses a private Marked instance with GitHub-flavored Markdown support to produce HTML, escaping manuscript HTML and restricting links/images.
+4. `app/api/export-pdf/route.ts` embeds Noto Sans Myanmar and Noto Sans Mono font data and launches Puppeteer/Chromium.
+5. Fenced Mermaid diagrams are rendered locally. Fonts finish loading before diagram sizing and PDF printing.
+6. Print layout keeps diagram headings/figures together and scales oversized figures to the printable area.
+7. Chromium returns an A4 PDF as an attachment, and the browser downloads it directly.
 
-## Changes Added
+There is no client-side canvas export, React PDF document, or browser print-dialog step in the active flow. The Myanmar TTF is actively embedded; it is not an unused legacy asset.
 
-### 1. PDF action renamed
+## Implemented formatting
 
-Changed the visible action from:
+- Standard Markdown pipe tables with borders, column headers, alternating rows, wrapping cells, and repeated headers across continued pages.
+- Headings through level six, emphasis, lists, blockquotes, inline code, and complete multi-line code blocks.
+- Preserved code punctuation, underscores, indentation, and escaped HTML inside code.
+- Mermaid flowcharts/sequence diagrams with Myanmar labels and appropriate label spacing.
+- Fenced ASCII diagrams as one monospace block; recognizable unfenced ASCII boxes are recovered as a block as well.
+- Diagram keep-together rules, printable-area scaling, and heading pagination fixes.
+- A visible labeled source fallback if Mermaid syntax cannot be rendered.
 
-```text
-Save as PDF
+Standard Markdown tables still need a valid header separator row. Arbitrary text/ASCII tables are not automatically reconstructed as semantic tables. Existing ASCII diagrams are preserved, not inferred into Mermaid. Very large diagrams may become small when scaled; readability needs evaluation for unusually large sources.
+
+## Fonts and runtime assets
+
+- `public/fonts/noto-sans-myanmar.ttf`: embedded Myanmar font for body text and diagram labels.
+- `public/fonts/noto-sans-mono.ttf`: embedded monospace font for code and ASCII alignment.
+- `public/fonts/noto-sans-mono-OFL.txt`: redistribution license for the added monospace font.
+- The existing Myanmar WOFF2 assets remain in the project; the PDF route reads the TTF.
+- `node_modules/mermaid/dist/mermaid.min.js`: local browser bundle, explicitly traced into the PDF route deployment.
+- `@sparticuz/chromium` binaries: externalized and explicitly traced through `next.config.ts`.
+
+Use Node.js 22. Windows uses installed Chrome/Edge (or `PDF_BROWSER_EXECUTABLE_PATH`); Linux/Vercel uses the bundled Chromium binary.
+
+## Rendering safeguards
+
+- Manuscript HTML is escaped, with a narrowly allowed line-break tag.
+- Unsafe link schemes do not become PDF links; external Markdown images become descriptions.
+- Network requests are blocked during PDF rendering; fonts and the diagram renderer are embedded/local.
+- Mermaid uses strict security mode, and manuscript configuration directives are removed before rendering.
+
+These are implemented safeguards, not a claim of a completed application security audit.
+
+## Verification completed on 2026-11-16
+
+- Eight Markdown renderer regression tests passed, including tables, escaped pipes, Burmese text, code spacing, legacy ASCII, Mermaid blocks, and HTML/link handling.
+- `npm run lint` and `npm run build` passed, including TypeScript checks.
+- Local PDF smoke tests passed using the production server.
+- Live Vercel PDF smoke tests returned valid PDF responses for the mixed-format and pagination fixtures.
+- The mixed-format fixture produced four pages; table and diagram preview pages were inspected visually.
+- Text extraction retained expected table/code/diagram labels, with no fallback for the valid Mermaid examples.
+- The five-page stress fixture retained all 65 rows, repeated table headers, the invalid-diagram fallback, and the final document marker.
+- GitHub CI and Vercel deployment succeeded for formatting commit `563524f`.
+
+These checks establish the behavior of the fixtures and inspected pages. They do not verify every historical book, every diagram type, all large-table edge cases, or every PDF viewer.
+
+## Reproduce the checks
+
+Start a local production server, then run:
+
+```bash
+npm test
+node tests/pdf-export-smoke.mjs http://localhost:3002 tmp/pdfs
 ```
 
-to:
+Check the deployed endpoint:
 
-```text
-Download PDF
+```bash
+node tests/pdf-export-smoke.mjs https://learning-space-delta.vercel.app tmp/pdfs/deployed
 ```
 
-The handler was renamed from `savePdf` to `downloadPdf`.
+The script saves `formatting-sample.pdf` and `pagination-stress.pdf`. Use Poppler rendering for visual inspection and a PDF text parser for retained-content checks. A successful HTTP response or build alone does not prove layout quality.
 
-### 2. Direct PDF download attempt
+## Historical approaches (superseded)
 
-Added a client-side PDF export dependency and replaced the print-window flow with a direct download flow.
+1. Browser print-window exports required the user to choose a PDF destination manually.
+2. `html2pdf.js`/`html2canvas` were tried for direct client downloads; blank/raster output problems were reported.
+3. `jsPDF` text placement was tried with Myanmar fonts; reported output had overlapping marks and unsuitable shaping.
+4. Native print and `@react-pdf/renderer` were tried in later iterations. The React PDF attempt still had reported Myanmar mark-positioning problems and was removed.
+5. Server-side Puppeteer/Chromium replaced those paths so browser text shaping handles Myanmar text.
+6. A deployment failure involving the missing `@sparticuz/chromium/bin` directory was corrected by externalizing Chromium and tracing its binary files.
+7. The old line-by-line Markdown converter printed pipe tables as text, split diagram lines into separate blocks, used a proportional font for ASCII, and supported too few Markdown constructs.
+8. Commit `563524f` replaced that converter with GFM parsing, local Mermaid rendering, embedded monospace fonts, and diagram/table pagination rules.
 
-The first implementation used `html2pdf.js` and `html2canvas`. It:
+Earlier notes saying no PDF library was used, the TTF was unused, the active button opened a print dialog, or PDF inspection had never succeeded are superseded by the current implementation and scoped verification above.
 
-- Created an HTML export container.
-- Applied A4 styling.
-- Attempted to download a PDF automatically.
-- Added local WOFF2 Myanmar font files.
+## Remaining work
 
-### 3. Blank-page fix attempt
+- Verify/fix table-of-contents anchors and exported internal links.
+- Add optional chapter page-break controls, syntax highlighting, cover pages, and metadata controls.
+- Evaluate unusually large diagrams and tables, more Mermaid diagram types, and multiple PDF viewers.
+- Add durable private export storage and a user-owned download history after authentication/storage design.
+- Add EPUB export separately.
 
-The export container was initially positioned far outside the viewport. That could result in an empty canvas and a blank PDF.
-
-The container was changed to render at the document origin, and the implementation waited for the Myanmar web font before calling the exporter.
-
-### 4. Markdown encoding
-
-The Markdown download now includes a UTF-8 BOM:
-
-```ts
-new Blob([`\ufeff${compiledBook}`], {
-  type: "text/markdown;charset=utf-8",
-});
-```
-
-This helps Windows applications detect the file as UTF-8 and display Myanmar text correctly.
-
-### 5. Text-PDF implementation attempt
-
-After the generated PDF was reported as:
-
-```text
-PDF PARSED TEXT:
-No content (images or text) could be read from document 'document.pdf'.
-```
-
-the raster-based `html2pdf.js` implementation was removed.
-
-The attempted implementation used `jsPDF` and:
-
-- Loads `noto-sans-myanmar.ttf` from `public/fonts`.
-- Embeds the font into the PDF with `addFileToVFS` and `addFont`.
-- Writes headings and paragraphs as PDF text objects.
-- Wraps long lines using `splitTextToSize`.
-- Creates additional pages when content reaches the page bottom.
-- Downloads the PDF using the book title as the filename.
-
-This implementation was not suitable for Myanmar text. The PDF contained text objects, but jsPDF did not perform the complex-script shaping and mark positioning required by Myanmar. The resulting output had overlapping marks and clipped-looking headings, as shown in the reported PDF screenshot.
-
-### 6. Current PDF implementation: native browser printing
-
-The jsPDF implementation was replaced with the browser's native print engine. The current action is labeled **Print / Save PDF** because browsers do not allow a web page to silently choose the user's PDF destination.
-
-The current flow:
-
-1. Opens a print-ready document in a new window.
-2. Loads the local Noto Sans Myanmar WOFF2 font.
-3. Waits for `document.fonts.ready`.
-4. Calls the browser's print dialog.
-5. Lets the user choose **Save to PDF**.
-
-This uses Chromium's text shaping engine, so Myanmar syllables and combining marks should be laid out correctly and the resulting PDF should contain selectable text. This is more reliable for Myanmar than manually placing Unicode strings with jsPDF.
-
-### 7. Local font assets
-
-Added these local WOFF2 assets during the earlier implementation:
-
-- `public/fonts/noto-sans-myanmar-400.woff2`
-- `public/fonts/noto-sans-myanmar-600.woff2`
-- `public/fonts/noto-sans-myanmar-700.woff2`
-
-The TTF used by the jsPDF attempt is retained as an unused asset for now. The WOFF2 files are used by the print document.
-
-### 8. Dependencies
-
-Added and later removed:
-
-- `html2pdf.js`
-- `@fontsource/noto-sans-myanmar`
-
-No PDF-generation library is currently used. PDF creation is delegated to the browser print engine.
-
-## Validation Completed
-
-These checks passed:
-
-- `npm run lint`
-- `npm run build`
-- The app builds successfully after switching to native printing.
-
-## Important Verification Limitation
-
-The browser-generated PDF was not successfully inspected with a PDF text-extraction tool in this environment. The environment did not have `pdftotext` installed, and a real generated manuscript was not exported during automated testing.
-
-Therefore, the following claims remain to be verified with an actual downloaded PDF:
-
-- Whether a PDF parser extracts the Myanmar text correctly.
-- Whether Myanmar glyph shaping is visually correct in every browser.
-- Whether the browser's saved PDF extracts Myanmar text correctly in every PDF parser.
-
-The previous claim that parser-readable Myanmar PDF output had been fully verified was incorrect.
-
-## Current Files Changed For This Work
-
-- `app/page.tsx`
-- `package.json`
-- `package-lock.json`
-- `public/fonts/noto-sans-myanmar-400.woff2`
-- `public/fonts/noto-sans-myanmar-600.woff2`
-- `public/fonts/noto-sans-myanmar-700.woff2`
-- `public/fonts/noto-sans-myanmar.ttf` (retained but unused)
-- `PDF_EXPORT_CHANGES.md`
-
-## Reported Output And Fix
-
-The reported output showed correct-looking Myanmar characters in some places but overlapping marks and a clipped Chapter 1 heading. This was caused by jsPDF placing Myanmar code points without complex-script shaping.
-
-The fix is to use **Print / Save PDF** with the browser's native print renderer. In the print dialog, choose **Save to PDF**. Do not use the old jsPDF-generated file; it is the output that produced the malformed layout.
-
-## React PDF Renderer Attempt
-
-The failed native-print PDF path was removed from `app/page.tsx` before starting this implementation.
-
-The requested `@react-pdf/renderer` approach was then added:
-
-- Added `@react-pdf/renderer` to the project dependencies.
-- Added `components/BookPdfDocument.tsx`.
-- Added `components/DownloadPdfButton.tsx`.
-- Registered `public/fonts/noto-sans-myanmar.ttf` with `Font.register`.
-- Rendered the compiled Markdown as PDF `Text` objects instead of an HTML screenshot.
-- Added A4 page layout, headings, dividers, wrapping, and page numbers.
-- Loaded the download button with `next/dynamic` and `ssr: false`.
-- Kept the existing Markdown download unchanged.
-
-The current button is **Download PDF** and uses `PDFDownloadLink`.
-
-Validation completed for this attempt:
-
-- `npm run lint` passed.
-- `npm run build` passed.
-
-The actual Myanmar PDF still needs to be generated in the browser and checked visually and with a PDF text parser. Passing TypeScript, lint, and build confirms the integration compiles; it does not prove that `@react-pdf/renderer` performs Myanmar shaping correctly in the downloaded file.
-
-## Reported React PDF Error And Puppeteer Fix
-
-The generated React PDF screenshot showed that some Myanmar words still had overlapping vowel signs and subscript marks. The font was embedded, but `@react-pdf/renderer` was not performing the Myanmar OpenType shaping required to position those marks correctly.
-
-The React PDF implementation was removed and replaced with a server-side Chromium implementation:
-
-- Added `puppeteer-core` and `@sparticuz/chromium` for serverless deployment.
-- Added `app/api/export-pdf/route.ts`.
-- Added `lib/markdown-html.ts` for escaped Markdown-to-HTML conversion.
-- Updated `components/DownloadPdfButton.tsx` to POST the manuscript to `/api/export-pdf`.
-- The route embeds `public/fonts/noto-sans-myanmar.ttf` as a data URL in the HTML.
-- The serverless Chromium binary renders the HTML and uses its HarfBuzz text shaping engine for Myanmar.
-- The route returns the generated PDF as an attachment.
-- Removed `@react-pdf/renderer` and the failed `components/BookPdfDocument.tsx` implementation.
-
-The client now downloads the server response directly instead of opening a print dialog or using a canvas/image PDF.
-
-Validation after this change:
-
-- `npm run lint` passed.
-- `npm run build` passed.
-- The `/api/export-pdf` route is included as a dynamic server route.
-
-## Current Report/PDF Generation Method
-
-The report system uses a Markdown-to-HTML-to-PDF pipeline:
-
-1. Chapters are generated by the AI API and combined into one Markdown manuscript.
-2. The client sends the manuscript and book title to the Next.js `/api/export-pdf` route.
-3. The route converts the Markdown to escaped HTML with `lib/markdown-html.ts`.
-4. `puppeteer-core` launches the serverless Chromium binary supplied by `@sparticuz/chromium`.
-5. Chromium loads the bundled `Noto Sans Myanmar` font and shapes the Myanmar text.
-6. Chromium prints the HTML as an A4 PDF and the route returns it as a download.
-
-This server-side browser-rendering method is used instead of `jsPDF` or `@react-pdf/renderer` because those approaches do not reliably shape Myanmar combining marks.
-
-## Final Verified Result
-
-The Markdown-to-PDF export now works successfully:
-
-1. The generated chapters are assembled into the compiled Markdown manuscript.
-2. The client sends the Markdown and book title to `/api/export-pdf`.
-3. The API converts the Markdown into escaped HTML.
-4. Puppeteer loads the HTML in Chromium with the bundled Noto Sans Myanmar font.
-5. Chromium shapes the Myanmar text correctly using its browser text engine.
-6. Puppeteer generates an A4 PDF.
-7. The API returns the PDF as a downloadable file.
-8. The browser downloads the final `.pdf` file using the book title.
-
-The final Markdown-to-PDF transfer is verified as successful, including the Myanmar text rendering path.
-
-## Chromium Deployment Fix
-
-The serverless PDF route initially failed with this error:
-
-```text
-The input directory "/var/task/node_modules/@sparticuz/chromium/bin" does not exist.
-```
-
-This happened because the bundler relocated `@sparticuz/chromium`, breaking the package's relative path lookup for its Chromium binary files. The Next.js configuration was updated to:
-
-- Externalize `@sparticuz/chromium` with `serverExternalPackages`.
-- Include `node_modules/@sparticuz/chromium/bin/**` in `outputFileTracingIncludes` for the `/api/export-pdf` route.
-
-The production build passed after this change with `npm run build`. The configuration change must be committed and pushed so the deployment provider uses it during the next deployment. The `.env` file must remain uncommitted; configure `GOOGLE_GENERATIVE_AI_API_KEY` in the deployment provider's environment variables instead.
-
-
+Download a PDF again after deployment to apply the new renderer. Previously downloaded files are unchanged. A regenerated chapter can use the newer Mermaid prompt, while an existing saved chapter keeps its original Markdown content.

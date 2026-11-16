@@ -1,3 +1,23 @@
+# Learner Feedback and Coding Priorities
+
+Last reviewed: 2026-11-16. The original learner feedback below is retained as context. The maintained implementation/verification checklist is [TODO.md](TODO.md); PDF history and current behavior are in [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md).
+
+## Current status
+
+- [x] Deploy tutor-focused prompts, incomplete-content validation/retries, and localStorage session recovery (`9e97468`).
+- [x] Deploy formatted Markdown tables, Mermaid graphics, aligned legacy ASCII diagrams, embedded fonts, and PDF pagination fixes (`563524f`).
+- [x] Deploy two concurrent chapter requests with independent progress/errors, ordered assembly, and safe failure draining (`15d6a7b`).
+- [x] Pass 12 renderer/queue tests, lint, production build/TypeScript checks, and GitHub CI.
+- [x] Test two Burmese JavaScript chapters concurrently in the local production browser; both completed.
+- [x] Test deployed PDF output with mixed-format and 65-row pagination fixtures, including text extraction and preview inspection.
+- [ ] Review full generated books for teaching quality, repetition, correct technology versions, and Myanmar wording. Prompt changes alone do not complete this review.
+- [ ] Add accounts, private cloud storage, ownership checks, saved-book history, and cross-device refetching.
+- [ ] Add pre-discussion chat/PDF input, user-defined AI connections, usage counts, and broader production/security work after design.
+
+**Storage correction:** The current app has no production database. It uses browser localStorage and device downloads. The privacy concern in the original notes is a requirement for future cloud storage, not evidence that an existing shared database exposes files.
+
+## Original learner feedback
+
 ok now i already read some or the generated pdf
 but it still have some confusion and ununderstandable sentences and words
 
@@ -39,8 +59,7 @@ the third one is that in writing the content especially the code, there is some 
 - [x] Document future backend storage for PDFs and exported books if cloud persistence is needed.
 - [ ] To test: verify saved outlines and chapters restore after refresh from localStorage and that exported/generated content is still available in the UI.
 
-to develop next, we need to create account and fetching the data that each user generate
-user account name email and api web hook to the other ai that the user have. in currenty, database is used by all users and so no privancy when fetch the files form the database.
+Next requirement: add user accounts (name/email) and fetch only the authenticated user's generated books and files. If user-defined AI/webhook connections are added, design secure credential storage and per-user access first. There is currently no shared production database; future database/file access must enforce user ownership.
 
 ### 3) Version-safe technology examples
 - [x] Add prompt instructions to prefer current stable technology patterns and modern syntax.
@@ -49,14 +68,14 @@ user account name email and api web hook to the other ai that the user have. in 
 - [ ] To test: generate a chapter using React, n8n, or similar tools and check that the examples match current stable usage patterns, not older or mismatched versions.
 
 ### 4) Output quality validation
-- [x] Ensure the prompt is more learner-focused and less like a list of disconnected features.
-- [x] Keep content more readable and practical.
+- [x] Add prompt instructions for learner-focused explanations instead of disconnected feature lists.
+- [x] Add prompt requirements for readability and reproducible practical steps.
 - [ ] To test: review the rendered PDF/manuscript text for clarity, flow, repetition, and version correctness across several generated books.
 
 ### 5) Implementation status
 - [x] Prompt fix completed.
-- [x] Persistence fix completed.
+- [x] Browser localStorage persistence implemented; cloud persistence and full refresh/storage-failure testing remain pending.
 - [x] TODO updated to reflect database/storage decision.
 - [ ] Final regression testing remains to confirm all three issues are resolved in real generated output.
 
-> Note: The prompt and app logic have been adjusted to address the user feedback. The remaining work is verification by generating real books and checking the output for repetition, clarity, storage behavior, and version alignment.
+> Note: Prompt, rendering, session, and concurrency work is implemented and deployed. The specific tests listed above passed. Broader review of repetition, clarity, storage recovery, and version alignment remains open; see TODO.md for the remaining work.
