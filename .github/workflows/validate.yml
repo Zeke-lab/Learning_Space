@@ -29,5 +29,7 @@ jobs:
         run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Test Markdown rendering
+        run: npm test
       - name: Build and type check
         run: npm run build

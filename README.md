@@ -36,6 +36,10 @@ This app uses server API routes for outline generation, chapter generation, and 
 
 PDF export launches a browser on the server. On Windows, install Google Chrome or Microsoft Edge on the machine running Next.js; if the browser is installed in a custom location, set `PDF_BROWSER_EXECUTABLE_PATH` to its executable path. On Linux deployments, PDF export uses the bundled `@sparticuz/chromium` binary.
 
+Use Node.js 22 for local builds and deployment. PDF export renders Markdown tables, lists, headings, and code blocks, with embedded Myanmar and monospace fonts. Fenced `mermaid` diagrams become vector graphics. Existing fenced ASCII diagrams (and recognizable unfenced ASCII boxes) retain their spacing and stay together on a page. Diagrams are scaled to the printable area; large tables can continue onto another page with repeated column headers. If a Mermaid diagram has invalid syntax, the PDF preserves its source with a visible fallback label.
+
+After deploying a PDF formatting change, download the PDF again from the saved book. Previously downloaded PDFs do not change. Run `npm test` for Markdown rendering regression checks; `tests/fixtures/pdf-formatting.md` provides a mixed Burmese/table/diagram sample for visual PDF checks.
+
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 

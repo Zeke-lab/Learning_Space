@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: ["@sparticuz/chromium"],
   outputFileTracingIncludes: {
-    "/api/export-pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
+    "/api/export-pdf": ["./node_modules/@sparticuz/chromium/bin/**", "./node_modules/mermaid/dist/mermaid.min.js"],
   },
 };
 

@@ -92,7 +92,7 @@ Teaching-depth requirements:
 Return ONLY one valid JSON object with exactly these keys: "chapterNumber", "chapterTitle", and "markdown". Put the complete chapter Markdown inside the "markdown" string. The Markdown must follow this structure:
 1. Chapter header with title, goal, and estimated reading time.
 2. Part I - The Foundational Layer: explain each prerequisite, a simple analogy, and why it matters. Keep this focused; do not re-explain basics that were already covered earlier unless needed for continuity.
-3. Part II - The Core Concept: definition, inner mechanics, comparison with traditional methods, an ASCII architecture diagram, and three key takeaways. Connect to prior chapter ideas where relevant, but do not duplicate earlier definitions verbatim.
+3. Part II - The Core Concept: definition, inner mechanics, comparison with traditional methods, a Mermaid architecture diagram, and three key takeaways. Put each diagram in a fenced code block labeled mermaid. Use simple flowchart TD or sequenceDiagram syntax, quoted node labels, and short labels in the chapter's language. Do not use ASCII art for new diagrams. Use standard Markdown tables with a header separator row for comparisons. Connect to prior chapter ideas where relevant, but do not duplicate earlier definitions verbatim.
 4. Part III - Practical Code / Real-World Example. Use current stable patterns and modern code examples. If versions matter, call out the version assumptions clearly.
 5. Part IV - Recap & Next Chapter Preview with a bulleted summary and transition.
 
