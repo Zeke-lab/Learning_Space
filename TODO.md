@@ -1,6 +1,6 @@
 # AI Book Studio TODO
 
-Last reviewed: 2026-11-16 (Asia/Bangkok).
+Last reviewed: 2026-11-19 (Asia/Bangkok).
 
 Checked items describe implemented work or the specific verification named. They do not mean every generated book has been reviewed for accuracy or teaching quality.
 
@@ -93,6 +93,11 @@ Live app: https://learning-space-delta.vercel.app/
 
 ### 1. Accounts, private storage, and book history
 
+- [x] Choose Google sign-in using OpenID Connect on OAuth 2.0; request only `openid email profile`.
+- [x] Implement the Google sign-in/sign-out UI and handlers, encrypted sessions, a protected account page/API, and account-scoped browser workspaces on `feat/google-sign-in` (not activated in production).
+- [x] Test identity/redirect/configuration rules and guest/user storage separation locally; test protected routes, encrypted app sessions, tampered/expired cookies, session updates, and CSRF-protected sign-out over HTTP using synthetic test sessions.
+- [ ] Complete the real Google consent/token callback and browser account-switch/sign-out checks with registered Google credentials; synthetic session tests do not verify Google configuration.
+- [ ] Configure Google OAuth Web application credentials and exact local/production callback URLs; verify the real Google redirect/callback and sign-out flow before production activation.
 - [ ] Add sign-in and user profiles with name/email.
 - [ ] Choose a backend database and private object storage for books and PDF/export files.
 - [ ] Associate every saved book/file with an authenticated owner and enforce ownership on every read/write/download.

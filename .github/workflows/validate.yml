@@ -33,3 +33,5 @@ jobs:
         run: npm test
       - name: Build and type check
         run: npm run build
+      - name: Test account HTTP boundaries
+        run: npm run test:auth

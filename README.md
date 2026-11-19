@@ -8,6 +8,8 @@ Repository: https://github.com/Zeke-lab/Learning_Space
 
 Status reviewed: 2026-11-16. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
 
+Google OpenID Connect account support is being prepared on `feat/google-sign-in`; see [AUTH_SETUP.md](AUTH_SETUP.md). It is not activated in the published app yet. The branch adds account sessions and separate browser workspaces; it does not add a database or cloud book/PDF sync.
+
 ## Current features
 
 - A topic field with a 10,000-character limit and character count.
