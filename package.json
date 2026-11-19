@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "test:auth": "node tests/auth-http-smoke.mjs"
+    "test:auth": "node tests/auth-http-smoke.mjs",
+    "test:db": "node db/check-schema.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.74",
@@ -28,6 +29,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

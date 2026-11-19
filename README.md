@@ -106,6 +106,8 @@ The smoke script checks response status, content type, and PDF signature and sav
 
 ## Deployment
 
+Database foundation: [db/README.md](db/README.md) describes the PostgreSQL entities, ownership rules, migration, and integration sequence. Run `npm run test:db` for isolated schema checks. This design is not connected to the running app; current books still use browser localStorage. For a real Google login test, follow [AUTH_SETUP.md](AUTH_SETUP.md#test-google-sign-in-on-your-laptop).
+
 Deploy as a Next.js server on Vercel with Node.js 22. Set `GOOGLE_GENERATIVE_AI_API_KEY` in the project's deployment environment. The connected Vercel project builds pushes to `main`; check GitHub Actions and the Vercel deployment status after publishing.
 
 The app needs server routes, so GitHub Pages/static export is not a supported deployment target. `next.config.ts` externalizes Chromium and traces its binaries plus the Mermaid browser bundle for PDF export.

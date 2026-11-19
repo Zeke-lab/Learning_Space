@@ -31,6 +31,8 @@ jobs:
         run: npm run lint
       - name: Test Markdown rendering
         run: npm test
+      - name: Test database schema and ownership
+        run: npm run test:db
       - name: Build and type check
         run: npm run build
       - name: Test account HTTP boundaries
