@@ -24,7 +24,7 @@ body {
 }
 
 button, input { font: inherit; }
-button:focus-visible, input:focus-visible { outline: 3px solid #d38c70; outline-offset: 3px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #d38c70; outline-offset: 3px; }
 
 .field-label, .eyebrow, .mini-heading { display: block; font-size: 0.68rem; font-weight: 750; letter-spacing: 0.16em; text-transform: uppercase; }
 .field-label, .mini-heading { color: var(--muted); }
