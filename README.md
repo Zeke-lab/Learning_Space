@@ -6,9 +6,9 @@ Live app: https://learning-space-delta.vercel.app/
 
 Repository: https://github.com/Zeke-lab/Learning_Space
 
-Status reviewed: 2026-11-16. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
+Status reviewed: 2026-11-20. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
 
-Google OpenID Connect account support is being prepared on `feat/google-sign-in`; see [AUTH_SETUP.md](AUTH_SETUP.md). It is not activated in the published app yet. The branch adds account sessions and separate browser workspaces; it does not add a database or cloud book/PDF sync.
+Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. The app has account sessions and separate browser workspaces; it does not yet persist users/books in a database or sync books/PDFs across devices.
 
 ## Current features
 
@@ -58,9 +58,9 @@ The two-request queue is a browser-side control. It is not server-side rate limi
 
 ## Storage and privacy
 
-The current app has no accounts, production database, or private cloud file store. The outline and generated chapters are stored in browser localStorage under `ai-book-studio-session`, scoped to the browser profile and website origin. They do not automatically sync between a phone and laptop, between browser profiles, or between localhost and the deployed site.
+The app supports Google sign-in but has no persistent database account records, production database connection, or private cloud file store. The outline and generated chapters are stored in browser localStorage: `ai-book-studio-session` for guests and a user-specific key for signed-in accounts. Storage is scoped to the browser profile and website origin. Books do not automatically sync between a phone and laptop, between browser profiles, or between localhost and the deployed site.
 
-PDFs and Markdown are downloaded to the user's device. The server does not retain a durable library of exported files. Authentication, per-user ownership checks, backend storage, book history, and cloud refetching remain planned work in [TODO.md](TODO.md).
+PDFs and Markdown are downloaded to the user's device. The server does not retain a durable library of exported files. Persistent user records, server-side book/file ownership checks, backend storage, book history, and cloud refetching remain planned work in [TODO.md](TODO.md).
 
 ## PDF export
 

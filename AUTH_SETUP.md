@@ -1,8 +1,10 @@
 # Google account sign-in setup
 
-Status: first-stage implementation on `feat/google-sign-in`. Real Google sign-in, account profile, reload persistence, and sign-out/protected-page denial passed locally on 2026-11-19. Production activation is still pending Vercel configuration and deployment.
+Status: merged into `main` through PR #1 (`e6290c7`) and deployed. Real Google sign-in, account profile, reload persistence, and sign-out/protected-page denial passed both locally and on `https://learning-space-delta.vercel.app`. Release notes reviewed on 2026-11-20.
 
-Google Cloud project: **Learning Space** (`mystic-tempo-515211-r3`). The **Learning Space Web** OAuth client has exact localhost/production callbacks registered. Branding/contact policy setup is saved, the app is in External/Testing mode, and the owner is registered as a test user. Credentials are saved only in the ignored local environment file. Vercel configuration is pending identity verification; no production activation is implied by the local result.
+Google Cloud project: **Learning Space** (`mystic-tempo-515211-r3`). The **Learning Space Web** OAuth client has exact localhost/production callbacks registered. Branding/contact policy setup is saved, the app is in External/Testing mode, and the owner is registered as a test user. Credentials are stored privately in the ignored local environment file and Vercel Production secrets. A separate random production session secret is configured. Preview deployments have not been configured for Google login.
+
+Google's app remains in **Testing** mode, so this release is ready for the registered owner to test. Public availability for other accounts and Google's publication/branding requirements remain a separate step; do not describe it as an unrestricted public sign-in launch.
 
 ## Scope of this first stage
 
@@ -50,7 +52,7 @@ Restart `npm run dev` after changing environment variables. Open `/signin` and s
 
 You do **not** need a database to test the current Google sign-in/session feature. Database design is in [db/README.md](db/README.md); saving account books to a database is a separate, pending integration.
 
-1. In VS Code, open the `Learning_Space` project folder. In its terminal run `git branch --show-current`; the sign-in implementation is on `feat/google-sign-in`, not the current production release. If necessary, switch to that branch after preserving any unrelated local changes.
+1. In VS Code, open the `Learning_Space` project folder. The sign-in implementation is merged into `main`; use an up-to-date checkout after preserving unrelated local changes.
 2. Complete the Google OAuth Web application setup above, including the local authorized redirect URI `http://localhost:3000/api/auth/callback/google`. Add your Google email under Audience/Test users if the app's testing configuration requires it.
 3. Open the ignored `.env.local` locally and fill `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. Keep the existing random `NEXTAUTH_SECRET` and set `NEXTAUTH_URL=http://localhost:3000`. Never paste secret values in chat. Keep the Gemini key if you also want to generate chapters.
 4. Run `npm ci`, then `npm run dev` in that folder. If port 3000 is occupied, stop the existing server or register the exact replacement port in both Google and `NEXTAUTH_URL`; do not silently use a different origin.
@@ -68,11 +70,11 @@ Common failures:
 - **Access denied/testing restriction:** check the selected Google account is allowed by the configured audience/test-user list. Workspace administrators may also restrict consent.
 - **Callback/session failure:** use one consistent origin, allow cookies, and inspect the server's safe error code. Never publish cookies, OAuth codes or tokens in screenshots/logs.
 
-Record real-flow success only after these steps complete. `npm run test:auth` uses synthetic sessions and cannot substitute for the Google redirect/consent/callback test. The current deployed production site does not yet include this branch's account feature.
+Record real-flow success only after these steps complete. `npm run test:auth` uses synthetic sessions and cannot substitute for the Google redirect/consent/callback test. The deployed production site includes account sign-in; the real callback and session/sign-out flow were verified with the registered owner.
 
 ## Production configuration
 
-Before merging/activating the feature, configure these in the Vercel project's Production environment:
+The following are configured as secrets in the Vercel project's Production environment. Retain these settings for future deployments:
 
 - `NEXTAUTH_URL`: `https://learning-space-delta.vercel.app`
 - `NEXTAUTH_SECRET`: a separately generated production secret, kept stable between deployments.
@@ -81,7 +83,7 @@ Before merging/activating the feature, configure these in the Vercel project's P
 
 Keep `GOOGLE_GENERATIVE_AI_API_KEY` configured. Do not prefix auth secrets with `NEXT_PUBLIC_`. Never commit `.env` or `.env.local`. Changing the session secret invalidates existing sessions.
 
-Google's real authorization, consent, callback, and sign-out flow must be tested with the owner's registered client in each environment. The local flow passed; Vercel remains pending. Synthetic session/policy checks cannot prove that the Google client or Vercel environment is correctly configured.
+Google's real authorization, consent, callback, and sign-out flow must be tested with the owner's registered client in each environment. Local and Vercel Production flows passed. Synthetic session/policy checks alone cannot prove that the Google client or Vercel environment is correctly configured.
 
 ## Account endpoint contract
 
@@ -93,16 +95,18 @@ The auth library handles `/api/auth/*`, including CSRF, sign-in, callback, sessi
 
 Run `npm test`, `npm run lint`, and `npm run build`, followed by `npm run test:auth`. The HTTP smoke test starts isolated local production servers with test-only credentials and synthetic encrypted app sessions. It verifies account access, session tampering/expiry, immutable identity on session update, CSRF-protected sign-out, workspace key selection, and safe behavior when configuration is missing. It does not log into Google or call its token endpoint.
 
-Local verification for this branch: 18 unit tests and 11 HTTP auth checks passed, along with lint, TypeScript checking, and production build. Three Postman assertions also passed for anonymous account denial, non-cacheable responses, and absence of user data. Browser access became available on 2026-11-19: the real Google redirect/consent/callback returned to Book Studio, the account page showed the correct profile after reload, and sign-out denied subsequent protected-page access. A second real account and production callback/cookie checks remain pending.
+Verification: 18 unit tests, 12 isolated PostgreSQL schema checks, and 11 HTTP auth checks passed, along with lint, TypeScript checking, and production build. Three earlier Postman assertions also passed for anonymous account denial, non-cacheable responses, and absence of user data. Real Google login returned to Book Studio locally and on the production domain; the account page showed the correct profile after reload, and sign-out denied subsequent protected-page access in both environments. Production deployment and main CI checks passed for `e6290c7`. A second real account remains untested. Browser cookie stores were not inspected; secure/HTTP-only cookie flags are covered by configuration and synthetic HTTP checks rather than a production cookie inspection.
 
 - [x] Google client/branding/audience and owner test user configured (External/Testing).
-- [ ] Local and production environment values set privately.
+- [x] Local and production environment values set privately; distinct local/production session secrets.
 - [x] Real Google sign-in completes locally and shows the correct name/email; reload preserves the session.
-- [ ] An unauthenticated visitor cannot access `/account` or account data.
+- [x] Local/production `/account` redirects after sign-out; synthetic HTTP checks reject anonymous account data.
 - [ ] Account A, account B, and guest browser workspaces stay separate.
 - [ ] Guest books remain available after returning to guest mode.
 - [x] Local sign-out returns to guest mode and subsequent `/account` access redirects to sign-in.
-- [ ] Test the deployed callback and secure-cookie behavior on the production domain.
+- [x] Real deployed Google callback, profile/reload persistence, and sign-out/protected-page denial passed over HTTPS.
+- [ ] Independently audit production cookie flags (not inspected through browser storage).
+- [ ] Complete Google publishing/branding requirements and verify access beyond the owner test account before public launch.
 - [ ] Add durable user records and private book/PDF storage in the next stage.
 
 References: [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect), [NextAuth Google provider](https://next-auth.js.org/providers/google), and [NextAuth server sessions](https://next-auth.js.org/configuration/nextjs).

@@ -1,6 +1,6 @@
 # AI Book Studio TODO
 
-Last reviewed: 2026-11-19 (Asia/Bangkok).
+Last reviewed: 2026-11-20 (Asia/Bangkok).
 
 Checked items describe implemented work or the specific verification named. They do not mean every generated book has been reviewed for accuracy or teaching quality.
 
@@ -8,7 +8,7 @@ Checked items describe implemented work or the specific verification named. They
 
 `Topic -> Book outline -> Up to two concurrent chapters -> Ordered Markdown manuscript -> Markdown/PDF download`
 
-The app generates a curriculum first, then writes chapters independently. The manuscript follows outline order even when chapter requests finish out of order. Books recover from browser localStorage; there is no production database or account system.
+The app generates a curriculum first, then writes chapters independently. The manuscript follows outline order even when chapter requests finish out of order. Google sign-in is deployed for the registered test owner; books recover from account-scoped browser localStorage. There is no production database connection or persistent account/book storage yet.
 
 ## Completed implementation
 
@@ -94,11 +94,12 @@ Live app: https://learning-space-delta.vercel.app/
 ### 1. Accounts, private storage, and book history
 
 - [x] Choose Google sign-in using OpenID Connect on OAuth 2.0; request only `openid email profile`.
-- [x] Implement the Google sign-in/sign-out UI and handlers, encrypted sessions, a protected account page/API, and account-scoped browser workspaces on `feat/google-sign-in` (not activated in production).
+- [x] Implement and deploy Google sign-in/sign-out, encrypted sessions, a protected account page/API, and account-scoped browser workspaces through PR #1 (`e6290c7`).
 - [x] Test identity/redirect/configuration rules and guest/user storage separation locally; test protected routes, encrypted app sessions, tampered/expired cookies, session updates, and CSRF-protected sign-out over HTTP using synthetic test sessions.
-- [ ] Complete the real Google consent/token callback and browser account-switch/sign-out checks with registered Google credentials; synthetic session tests do not verify Google configuration.
-- [x] Create dedicated Google Cloud project/client and register exact localhost/production callbacks; verify real local Google sign-in, profile/reload persistence, and sign-out/protected-page denial (2026-11-19). Second-account switching and Vercel activation remain pending.
-- [ ] Configure Google OAuth Web application credentials and exact local/production callback URLs; verify the real Google redirect/callback and sign-out flow before production activation.
+- [ ] Complete second-real-account switching and guest-book recovery checks; synthetic sessions cover distinct account keys but do not replace this browser test.
+- [x] Create dedicated Google Cloud project/client and register exact localhost/production callbacks; verify real Google sign-in, profile/reload persistence, and sign-out/protected-page denial locally and on the deployed domain.
+- [x] Save Google credentials and distinct local/production session secrets privately; merge to main, deploy, and verify main CI success.
+- [ ] Complete Google publishing/branding requirements and verify access beyond the registered owner before public launch (currently External/Testing).
 - [ ] Add sign-in and user profiles with name/email.
 - [x] Choose PostgreSQL for the relational database design; hosting is not provisioned yet.
 - [ ] Choose/provision private object storage for saved PDF/export files.
