@@ -68,7 +68,7 @@ The two-request limit is per running browser batch, not a server-wide or per-acc
 
 ## Verification completed
 
-- [x] `npm test`: 18 tests passed (8 Markdown renderer, 4 concurrency/queue, and 6 auth-policy cases).
+- [x] `npm test`: 24 tests passed (8 Markdown renderer, 4 concurrency/queue, 6 auth-policy, and 6 database-configuration cases).
 - [x] `npm run test:db`: 22 isolated PostgreSQL checks passed, including forward UUID migration with existing books and isolation of private authentication records.
 - [x] Queue tests cover two concurrent requests, slot refill, stopping queued work after a failure, draining in-flight work, rejection handling, and empty/single-item queues.
 - [x] `npm run lint` and `npm run build` passed; the build includes TypeScript checking.
@@ -104,11 +104,12 @@ Live app: https://learning-space-delta.vercel.app/
 - [ ] Support both Google sign-in and self-service account creation; decide the registration method (for example, email/password) and include email verification and password recovery if passwords are supported.
 - [ ] Persist both Google-authenticated and newly registered accounts as user records in PostgreSQL. Create or link a profile on a user's first Google sign-in, and use the database record as the durable account identity rather than relying on the browser session alone.
 - [ ] For password-based registration, store only a secure password hash; never store or log plaintext passwords.
-- [x] Choose PostgreSQL for the relational database design; hosting is not provisioned yet.
+- [x] Choose PostgreSQL and locate the owner's Supabase Free Learning space project in Sydney (`wgzfhrtibckrikcppmlq`).
 - [ ] Choose/provision private object storage for saved PDF/export files.
 - [x] Design a PostgreSQL schema for profiles, folders, books, chapters, generation attempts, and private export metadata; add executable migration and isolated ownership/constraint checks in `db/` (not connected or deployed).
 - [x] Step 1: add a forward migration to permanent UUID account IDs, separate Google identity mapping, and private optional password/verification/reset tables; verify populated-data migration and ownership isolation with 22 database checks. Registration endpoints and a hosted connection remain pending.
-- [ ] Provision development PostgreSQL, apply the migration with a separate owner role, and configure a nonprivileged runtime connection.
+- [x] Step 2a: apply migrations 001/002 to the owner's empty Supabase project; verify nine tables, forced RLS on six content tables, and denied schema access for anon/authenticated API roles.
+- [ ] Step 2b: privately configure the existing database password, provision restricted content/authentication roles, and pass hosted connection checks before connecting the app. Setup/check scripts are prepared; no administrator credentials should be deployed.
 - [ ] Connect verified Google identities to persistent profiles and implement transaction-scoped, ownership-checked book/chapter APIs before moving browser data into cloud storage.
 - [ ] Associate every saved book/file with an authenticated owner and enforce ownership on every read/write/download.
 - [ ] Add book history and fetch a user's saved books/files back into the UI.
