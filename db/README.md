@@ -2,11 +2,16 @@
 
 Status: proposed PostgreSQL 16+ schema, not a provisioned database and not wired to the app. Existing books remain in browser localStorage. No migration runs automatically during build/deploy. Google login can be tested before connecting a database.
 
+Account schema updated on 2026-11-20: apply `001_initial.sql` then `002_account_identities.sql`. The second migration replaces Google-only primary keys with permanent UUID account IDs and adds private authentication tables. The live app still uses its existing Google subject sessions until a later server integration is implemented.
+
 ## Entities and ownership
 
 ```mermaid
 erDiagram
   USERS ||--o{ FOLDERS : owns
+  USERS ||--o{ IDENTITIES : authenticates
+  USERS ||--o| PASSWORD_CREDENTIALS : optionally_authenticates
+  PASSWORD_CREDENTIALS ||--o{ EMAIL_CHALLENGES : verifies_or_recovers
   USERS ||--o{ BOOKS : owns
   FOLDERS o|--o{ BOOKS : organizes
   BOOKS ||--o{ CHAPTERS : contains
@@ -14,7 +19,10 @@ erDiagram
   BOOKS ||--o{ EXPORTS : exports
 ```
 
-- `users`: name/email plus the current verified `google:<sub>` session ID. Email is mutable and deliberately not a unique identity. No password or Google access/refresh/ID tokens are stored. This supports the current Google-only app; introducing another identity provider later requires a dedicated identities table and an explicit linking flow.
+- `users`: permanent UUID, profile name/email, verification timestamp, session version and optional disabled timestamp. Profile email can change and is deliberately not a unique identity. A Google account or a locally registered account owns the same kinds of books through this UUID.
+- `learning_space_auth.identities`: verified provider plus subject mapped to a user UUID. `(provider, provider_subject)` is unique. The initial provider is Google; no Google access/refresh/ID tokens are stored. One account can have explicitly linked login methods; matching email addresses must never silently link or merge accounts.
+- `learning_space_auth.password_credentials`: optional one-per-user email/password login, with a unique lowercase/trimmed login email, encoded Argon2id hash, verification timestamp and credential revision. Google-only users have no password row. This reserves email/password support without activating registration; the registration method and mail delivery still need implementation decisions. The hash prefix/length constraint rejects ordinary plaintext but cannot prove that a string is a securely generated hash; the future server must generate and validate hashes through a maintained library.
+- `learning_space_auth.email_challenges`: optional verification/reset records holding only SHA-256 digests of cryptographically random tokens, purpose, target email, credential revision, expiry and consumption time. This schema limits lifetime to at most 24 hours; choose a shorter reset lifetime in the application. Raw tokens are sent to the recipient through the mail service, never stored in this database.
 - `folders`: optional, flat personal organization; nested/shared folders are outside this first design.
 - `books`: topic, title/subtitle, language (Burmese default), page estimate, optional folder, archive timestamp, optimistic revision and optional guest-import key. Multiple books per user provide book history.
 - `chapters`: outline metadata plus accepted Markdown. The `(book_id, chapter_number)` constraint preserves unique outline order. JSON arrays map to `sections` and `prerequisiteConceptsCovered`; application Zod validation must also check string elements. No rendered HTML is stored.
@@ -32,7 +40,7 @@ All content tables have `owner_id`. Composite foreign keys prevent attaching a u
 In each server-side database transaction:
 
 1. Validate the encrypted session with `getAppSession()`; reject anonymous cloud access.
-2. Bind the verified `session.user.id` with parameterized SQL: `SELECT set_config('app.user_id', $1, true)`. Never accept owner IDs from the request body or set connection-wide session state. The `true` setting is transaction-local and works with pooled connections when all queries use that same transaction connection.
+2. After the future authentication integration maps the verified identity to its database UUID, bind that trusted account UUID with parameterized SQL: `SELECT set_config('app.user_id', $1, true)`. The current `google:<sub>` session subject is not this UUID and must not be used directly. Never accept owner IDs from the request body or set connection-wide session state. The `true` setting is transaction-local and works with pooled connections when all queries use that same transaction connection.
 3. Scope application queries to that owner as well. RLS is a second check; it does not authenticate a request or protect against a compromised server that can impersonate another owner.
 4. Commit/rollback before returning the connection. Without context, RLS returns no user rows and rejects inserts. Never expose the database URL to client code.
 
@@ -45,9 +53,15 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA learning_space TO l
 
 Do not grant DDL, role membership in the migration owner, TRUNCATE, or RLS bypass. Table creation and role grants are separate from the application deployment.
 
+The `learning_space_auth` schema is separate and grants nothing to PUBLIC or `learning_space_app`. Its tables are accessed only by a future, separately credentialed server authentication service, never ordinary book APIs or the browser. Do not extend the content-role grants above to authentication tables. Authentication tables use schema/table privilege isolation rather than per-book RLS because verified login requires identity lookup before a user session exists. Integration must provision and test the narrow authentication role separately; do not give it migration-owner privileges. The migration owner is trusted administrative access and can read these records.
+
+Before issuing a future database-backed session, the authentication service must verify Google claims or the password and email verification status, resolve/create the UUID, reject disabled users, and record the UUID/session version. Password resets and account disable operations must revoke sessions by incrementing `users.session_version`; protected requests must compare it. The present JWT implementation does not yet perform these database checks.
+
 ## Writes, imports and cleanup
 
-- On verified login, a future server integration upserts the user's own profile before creating books. Keep the current JWT sessions; this schema is not a drop-in NextAuth adapter. No database session/token tables are required with this design.
+- On verified Google login, look up the provider/subject first. For a new identity, allocate a UUID, set trusted transaction context and create the profile plus identity atomically; handle unique-identity races by returning the already-created account. A matching profile email alone is not permission to link an identity. Linking a second method requires proof of both identities and fresh authentication. This schema is not a drop-in NextAuth adapter; the future JWT subject is the UUID, not the Google subject.
+- For future password registration, normalize/validate the email in the server, hash the password with a maintained Argon2id library, and create user/credentials atomically. Never log passwords or hashes or put them in a session/API profile. Require email verification before issuing an active password session. Password storage guidance: [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+- Verification/reset endpoints must use generic responses, rate limits and random single-use tokens. Consume a challenge atomically only when its digest, expected purpose, unconsumed status, future expiry, target email and current credential revision match; make the password/verification change in the same transaction. Credential changes increment the revision and invalidate outstanding challenges; password reset also increments the session version. Schema checks do not implement these endpoint rules. See [OWASP recovery guidance](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html).
 - Save outline plus all chapter metadata in one transaction. Outline replacement should create a new book, preserving history and avoiding running jobs writing into a new outline.
 - Chapter success uses a conditional update on `content_revision = expected_content_revision`, increments that revision, increments the parent book revision, and marks the attempt succeeded in one transaction. Take a parent book lock first in all book mutation paths to serialize book revisions. Outdated results must not overwrite newer content.
 - Retries use new request keys after a terminal failure; HTTP retries of the same request reuse the same key. A future worker must claim jobs atomically, renew leases and expire/recover abandoned attempts. Do not hold database transactions open while calling Gemini or rendering PDFs.
@@ -58,9 +72,18 @@ Do not grant DDL, role membership in the migration owner, TRUNCATE, or RLS bypas
 
 ## Apply and validate
 
-Use a fresh development PostgreSQL database first, not production. Apply once with `psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/001_initial.sql` in PowerShell, using a privately configured migration connection. `DATABASE_URL` is a future server-only configuration; adding it alone does not connect this app. Use distinct migration/runtime credentials, a provider-supported pool for serverless requests, and backups before storing real books.
+Use a fresh development PostgreSQL database first, not production. Run both commands once, in order, in PowerShell using a privately configured migration connection:
 
-After `npm ci`, exercise the schema without an external database using `npm run test:db`. The checker uses the development-only PGlite dependency with an isolated in-memory PostgreSQL database and a nonprivileged runtime role; it never reads credentials. It verifies DDL, ownership, cross-owner constraints, outline order, attempt exclusivity and rollback behavior. It does not establish a hosted connection, durable storage, production grants, parallel-worker behavior, or Google login.
+```powershell
+psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/001_initial.sql
+psql "$env:DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/002_account_identities.sql
+```
+
+If `001` is already applied, apply only `002`. Never rerun either migration blindly. `002` takes exclusive locks and converts all existing owner keys in one transaction, while preserving Google subjects in `identities`; test downtime and backup/restore before running on a populated hosted database. It does not infer historical email verification. RLS is temporarily disabled only inside the locked migration transaction and restored with UUID ownership policies before commit. Migrations must run with the schema owner, not the runtime role.
+
+`DATABASE_URL` is a future server-only configuration; adding it alone does not connect this app. Use distinct migration/runtime/authentication credentials, a provider-supported pool for serverless requests, and backups before storing real books. Preserve old Google session/browser workspace keys until the future identity mapping and explicit local-book import are implemented; changing the database schema alone must not discard saved browser content.
+
+After `npm ci`, exercise the schema without an external database using `npm run test:db`. The checker uses the development-only PGlite dependency with isolated in-memory PostgreSQL databases and a nonprivileged content runtime role; it never reads credentials. Its 22 checks verify empty/populated forward migration, UUID/identity mapping, private authentication-table denial, credential/challenge constraints, single-use/expiry/revision consumption predicates, ownership, cross-owner constraints, outline order, attempt exclusivity and account-deletion cascades. It does not implement registration, real password hashing, mail delivery, public endpoints, a hosted connection, production grants, parallel-worker behavior, or Google login.
 
 Before integration is complete, test two real accounts against the hosted runtime role: cross-owner list/read/update/delete/import/export denial, pooled connection isolation, concurrent chapter updates and stale results, failed object cleanup, backup recovery and explicit guest import. Add API integration tests when those endpoints exist.
 

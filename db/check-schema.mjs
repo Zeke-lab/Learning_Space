@@ -19,23 +19,108 @@ async function asUser(id, task) {
 async function rejectsCode(task, code) {
   await assert.rejects(task, error => error.code === code);
 }
-const alice = 'google:alice';
-const bob = 'google:bob';
+const alice = '11111111-1111-4111-8111-111111111111';
+const bob = '22222222-2222-4222-8222-222222222222';
+// Encoded-looking fixture only; this script does not implement password hashing.
+const fixtureHash = '$argon2id$v=19$m=19456,t=2,p=1$c2FsdC1maXh0dXJl$Zml4dHVyZS1oYXNoLW9ubHktbm90LWEtcGFzc3dvcmQ';
 let book, folder, chapter;
 try {
-  await check('migration applies to fresh PostgreSQL', async () => {
+  await check('initial migration applies to fresh PostgreSQL', async () => {
     await db.exec(await readFile(new URL('./migrations/001_initial.sql', import.meta.url), 'utf8'));
+  });
+  await check('forward account migration preserves existing Google accounts and every owned table', async () => {
+    await db.exec(`INSERT INTO learning_space.users(id,email,name) VALUES ('google:legacy','legacy@example.com','Legacy');
+      INSERT INTO learning_space.folders(id,owner_id,name) VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','google:legacy','Legacy folder');
+      INSERT INTO learning_space.books(id,owner_id,folder_id,topic,title,estimated_total_pages)
+        VALUES ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','google:legacy','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','MCP','Legacy book',10);
+      INSERT INTO learning_space.chapters(id,owner_id,book_id,chapter_number,title,estimated_pages,core_goal,sections,markdown)
+        VALUES ('cccccccc-cccc-4ccc-8ccc-cccccccccccc','google:legacy','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',1,'Intro',10,'Learn','["Intro"]','မြန်မာ legacy content');
+      INSERT INTO learning_space.generation_attempts(owner_id,book_id,chapter_id,request_key,expected_content_revision,model,prompt_version)
+        VALUES ('google:legacy','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','cccccccc-cccc-4ccc-8ccc-cccccccccccc',gen_random_uuid(),0,'test','v1');
+      INSERT INTO learning_space.exports(owner_id,book_id,format,book_revision)
+        VALUES ('google:legacy','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','markdown',1);`);
+    await db.exec(await readFile(new URL('./migrations/002_account_identities.sql', import.meta.url), 'utf8'));
+    const legacy = (await db.query("SELECT user_id FROM learning_space_auth.identities WHERE provider='google' AND provider_subject='legacy'")).rows[0].user_id;
+    assert.match(legacy, /^[0-9a-f-]{36}$/);
+    for (const table of ['folders','books','chapters','generation_attempts','exports']) {
+      assert.equal((await db.query(`SELECT owner_id FROM learning_space.${table}`)).rows[0].owner_id, legacy);
+    }
+    assert.equal((await db.query('SELECT markdown FROM learning_space.chapters')).rows[0].markdown, 'မြန်မာ legacy content');
+    assert.equal((await db.query('SELECT email_verified_at FROM learning_space.users')).rows[0].email_verified_at, null);
+    await db.query('DELETE FROM learning_space.users WHERE id=$1', [legacy]);
+  });
+  await check('migrations apply in order to an empty database too', async () => {
+    const fresh = new PGlite();
+    try {
+      for (const migration of ['001_initial.sql','002_account_identities.sql']) {
+        await fresh.exec(await readFile(new URL('./migrations/'+migration, import.meta.url), 'utf8'));
+      }
+      const generated = (await fresh.query("INSERT INTO learning_space.users(email) VALUES ('new@example.com') RETURNING id")).rows[0].id;
+      assert.match(generated, /^[0-9a-f-]{36}$/);
+    } finally { await fresh.close(); }
+  });
+  await check('book runtime role has explicit content privileges only', async () => {
     await db.exec(`CREATE ROLE learning_space_app NOSUPERUSER NOBYPASSRLS;
       GRANT USAGE ON SCHEMA learning_space TO learning_space_app;
       GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA learning_space TO learning_space_app;
       SET ROLE learning_space_app;`);
   });
-  await check('verified subjects can create only their own profiles, including Burmese', async () => {
+  await check('permanent account IDs create only their own profiles, including Burmese', async () => {
     for (const id of [alice, bob]) {
-      await asUser(id, tx => tx.query('INSERT INTO learning_space.users(id,email,name) VALUES ($1,$2,$3)', [id, `${id.slice(7)}@example.com`, 'မြန်မာစာ']));
+      await asUser(id, tx => tx.query('INSERT INTO learning_space.users(id,email,name) VALUES ($1,$2,$3)', [id, `${id.slice(0,8)}@example.com`, 'မြန်မာစာ']));
     }
-    await rejectsCode(() => asUser(alice, tx => tx.query("INSERT INTO learning_space.users(id,email) VALUES ('google:other','other@example.com')")), '42501');
+    await rejectsCode(() => asUser(alice, tx => tx.query("INSERT INTO learning_space.users(id,email) VALUES ('33333333-3333-4333-8333-333333333333','other@example.com')")), '42501');
   });
+  await check('credential, provider identity and challenge records are inaccessible to book runtime', async () => {
+    for (const table of ['identities','password_credentials','email_challenges']) {
+      await rejectsCode(() => asUser(alice, tx => tx.query(`SELECT * FROM learning_space_auth.${table}`)), '42501');
+      await rejectsCode(() => asUser(alice, tx => tx.query(`DELETE FROM learning_space_auth.${table}`)), '42501');
+      await rejectsCode(() => asUser(alice, tx => tx.query(`INSERT INTO learning_space_auth.${table} DEFAULT VALUES`)), '42501');
+    }
+  });
+  await check('legacy Google session context cannot access new UUID accounts', async () => {
+    assert.equal((await asUser('google:alice', tx=>tx.query('SELECT * FROM learning_space.users'))).rows.length, 0);
+  });
+  await db.exec('RESET ROLE');
+  await check('Google provider subject maps uniquely and can coexist with a password identity', async () => {
+    await db.query("INSERT INTO learning_space_auth.identities(user_id,provider,provider_subject) VALUES ($1,'google','alice-subject')", [alice]);
+    await db.query('INSERT INTO learning_space_auth.password_credentials(user_id,login_email,password_hash) VALUES ($1,$2,$3)', [alice,'alice@example.com',fixtureHash]);
+    await rejectsCode(() => db.query("INSERT INTO learning_space_auth.identities(user_id,provider,provider_subject) VALUES ($1,'google','alice-subject')", [bob]), '23505');
+    // Same display email does not create a provider link or merge accounts.
+    await db.query("UPDATE learning_space.users SET email='alice@example.com' WHERE id IN ($1,$2)", [alice,bob]);
+    assert.equal((await db.query('SELECT * FROM learning_space_auth.identities WHERE user_id=$1', [bob])).rows.length, 0);
+  });
+  await check('password identity rejects plaintext and unnormalized or duplicate login emails', async () => {
+    await rejectsCode(() => db.query('INSERT INTO learning_space_auth.password_credentials(user_id,login_email,password_hash) VALUES ($1,$2,$3)', [bob,'bob@example.com','plain-password']), '23514');
+    await rejectsCode(() => db.query('INSERT INTO learning_space_auth.password_credentials(user_id,login_email,password_hash) VALUES ($1,$2,$3)', [bob,'Alice@Example.com',fixtureHash]), '23514');
+    await rejectsCode(() => db.query('INSERT INTO learning_space_auth.password_credentials(user_id,login_email,password_hash) VALUES ($1,$2,$3)', [bob,'alice@example.com',fixtureHash]), '23505');
+  });
+  const challengeSql = `INSERT INTO learning_space_auth.email_challenges(user_id,purpose,token_digest,login_email,credential_revision,expires_at)
+    VALUES ($1,$2,$3,'alice@example.com',1,now()+interval '30 minutes') RETURNING id`;
+  await check('email challenges require digests and valid purpose and expiration', async () => {
+    await rejectsCode(() => db.query(challengeSql, [alice,'reset_password','raw-reset-token']), '23514');
+    await rejectsCode(() => db.query(challengeSql, [alice,'unknown','b'.repeat(64)]), '23514');
+    await rejectsCode(() => db.query("INSERT INTO learning_space_auth.email_challenges(user_id,purpose,token_digest,login_email,credential_revision,expires_at) VALUES ($1,'verify_email',$2,'alice@example.com',1,now()-interval '1 minute')", [alice,'c'.repeat(64)]), '23514');
+    await rejectsCode(() => db.query("INSERT INTO learning_space_auth.email_challenges(user_id,purpose,token_digest,login_email,credential_revision,expires_at) VALUES ($1,'verify_email',$2,'alice@example.com',1,now()+interval '25 hours')", [alice,'d'.repeat(64)]), '23514');
+  });
+  await check('challenge consumption predicate rejects reused, expired and stale revisions', async () => {
+    const challenge = (await db.query(challengeSql,[alice,'reset_password','a'.repeat(64)])).rows[0].id;
+    const consume = `UPDATE learning_space_auth.email_challenges c SET consumed_at=now()
+      FROM learning_space_auth.password_credentials p WHERE c.id=$1 AND c.user_id=p.user_id
+      AND c.purpose=$2
+      AND c.login_email=p.login_email AND c.credential_revision=p.credential_revision
+      AND c.consumed_at IS NULL AND c.expires_at>now() RETURNING c.id`;
+    assert.equal((await db.query(consume,[challenge,'verify_email'])).rows.length,0);
+    assert.equal((await db.query(consume,[challenge,'reset_password'])).rows.length,1);
+    assert.equal((await db.query(consume,[challenge,'reset_password'])).rows.length,0);
+    const stale = (await db.query(challengeSql,[alice,'verify_email','e'.repeat(64)])).rows[0].id;
+    await db.query('UPDATE learning_space_auth.password_credentials SET credential_revision=2 WHERE user_id=$1', [alice]);
+    assert.equal((await db.query(consume,[stale,'verify_email'])).rows.length,0);
+    await db.exec("INSERT INTO learning_space_auth.email_challenges(user_id,purpose,token_digest,login_email,credential_revision,created_at,expires_at) VALUES ('11111111-1111-4111-8111-111111111111','reset_password',repeat('f',64),'alice@example.com',2,now()-interval '2 hours',now()-interval '1 hour')");
+    const expired=(await db.query("SELECT id FROM learning_space_auth.email_challenges WHERE token_digest=repeat('f',64)")).rows[0].id;
+    assert.equal((await db.query(consume,[expired,'reset_password'])).rows.length,0);
+  });
+  await db.exec('SET ROLE learning_space_app');
   await check('book, folder and ordered chapter metadata map to the current app', async () => {
     await asUser(alice, async tx => {
       folder = (await tx.query("INSERT INTO learning_space.folders(owner_id,name) VALUES ($1,'MCP') RETURNING id", [alice])).rows[0].id;
@@ -100,6 +185,12 @@ try {
       }
     });
     assert.equal((await asUser(bob, tx => tx.query('SELECT * FROM learning_space.users'))).rows.length, 1);
+  });
+  await check('account deletion also removes provider, credential and challenge rows', async () => {
+    await db.exec('RESET ROLE');
+    for (const table of ['identities','password_credentials','email_challenges']) {
+      assert.equal((await db.query(`SELECT * FROM learning_space_auth.${table} WHERE user_id=$1`,[alice])).rows.length,0);
+    }
   });
   console.log(`${checks} database checks passed. Hosted connection and app integration remain pending.`);
 } finally {

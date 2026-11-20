@@ -68,7 +68,8 @@ The two-request limit is per running browser batch, not a server-wide or per-acc
 
 ## Verification completed
 
-- [x] `npm test`: 12 tests passed (8 Markdown renderer cases and 4 concurrency/queue cases).
+- [x] `npm test`: 18 tests passed (8 Markdown renderer, 4 concurrency/queue, and 6 auth-policy cases).
+- [x] `npm run test:db`: 22 isolated PostgreSQL checks passed, including forward UUID migration with existing books and isolation of private authentication records.
 - [x] Queue tests cover two concurrent requests, slot refill, stopping queued work after a failure, draining in-flight work, rejection handling, and empty/single-item queues.
 - [x] `npm run lint` and `npm run build` passed; the build includes TypeScript checking.
 - [x] GitHub build and validation checks passed for the published implementation commits below.
@@ -100,10 +101,13 @@ Live app: https://learning-space-delta.vercel.app/
 - [x] Create dedicated Google Cloud project/client and register exact localhost/production callbacks; verify real Google sign-in, profile/reload persistence, and sign-out/protected-page denial locally and on the deployed domain.
 - [x] Save Google credentials and distinct local/production session secrets privately; merge to main, deploy, and verify main CI success.
 - [ ] Complete Google publishing/branding requirements and verify access beyond the registered owner before public launch (currently External/Testing).
-- [ ] Add sign-in and user profiles with name/email.
+- [ ] Support both Google sign-in and self-service account creation; decide the registration method (for example, email/password) and include email verification and password recovery if passwords are supported.
+- [ ] Persist both Google-authenticated and newly registered accounts as user records in PostgreSQL. Create or link a profile on a user's first Google sign-in, and use the database record as the durable account identity rather than relying on the browser session alone.
+- [ ] For password-based registration, store only a secure password hash; never store or log plaintext passwords.
 - [x] Choose PostgreSQL for the relational database design; hosting is not provisioned yet.
 - [ ] Choose/provision private object storage for saved PDF/export files.
 - [x] Design a PostgreSQL schema for profiles, folders, books, chapters, generation attempts, and private export metadata; add executable migration and isolated ownership/constraint checks in `db/` (not connected or deployed).
+- [x] Step 1: add a forward migration to permanent UUID account IDs, separate Google identity mapping, and private optional password/verification/reset tables; verify populated-data migration and ownership isolation with 22 database checks. Registration endpoints and a hosted connection remain pending.
 - [ ] Provision development PostgreSQL, apply the migration with a separate owner role, and configure a nonprivileged runtime connection.
 - [ ] Connect verified Google identities to persistent profiles and implement transaction-scoped, ownership-checked book/chapter APIs before moving browser data into cloud storage.
 - [ ] Associate every saved book/file with an authenticated owner and enforce ownership on every read/write/download.
@@ -111,7 +115,7 @@ Live app: https://learning-space-delta.vercel.app/
 - [ ] Decide how to import existing localStorage books into an account without losing local content.
 - [ ] Test that user A cannot list or download user B's books, including direct file URLs.
 
-There is currently no database shared by users. localStorage belongs to the browser profile and website origin; it does not provide authenticated per-user ownership or multi-device sync. Generated PDFs are downloaded rather than stored in a durable backend.
+There is currently no database shared by users, and the current Google sign-in implementation does not persist account records. In a typical account system, Google sign-in creates or finds a database user record on first sign-in, while self-service registration creates one; sessions then refer to that durable user identity. Password-based registration stores a password hash, not the password itself. localStorage belongs to the browser profile and website origin; it does not provide authenticated per-user ownership or multi-device sync. Generated PDFs are downloaded rather than stored in a durable backend.
 
 ### 2. Reliability and production readiness
 

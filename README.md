@@ -83,7 +83,7 @@ npm run lint
 npm run build
 ```
 
-The test suite currently contains 12 Markdown-rendering and chapter-queue tests. GitHub Actions runs tests, lint, and the production build/type check.
+The unit suite contains 18 Markdown, chapter-queue, and auth-policy tests. Run `npm run test:db` for 22 isolated database schema/ownership checks and `npm run test:auth` after a production build for 11 synthetic-session HTTP checks. GitHub Actions runs these checks, lint, and the production build/type check. Real Google login is verified separately as described in AUTH_SETUP.md.
 
 For a production-mode local PDF check, run these in separate terminals:
 
