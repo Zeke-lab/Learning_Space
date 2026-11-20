@@ -6,6 +6,8 @@ Live app: https://learning-space-delta.vercel.app/
 
 Repository: https://github.com/Zeke-lab/Learning_Space
 
+For a plain-language tour with workflow diagrams, read [APPLICATION_GUIDE.md](APPLICATION_GUIDE.md). With the local server running, regenerate its reading copy using `node scripts/export-application-guide.mjs`.
+
 Status reviewed: 2026-11-20. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
 
 Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. The app has account sessions and separate browser workspaces; it does not yet persist users/books in a database or sync books/PDFs across devices.

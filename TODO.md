@@ -14,6 +14,8 @@ The app generates a curriculum first, then writes chapters independently. The ma
 
 ### Foundation and deployment
 
+- [x] Add a plain-language application guide with five workflow/data diagrams and a reproducible local PDF export (`APPLICATION_GUIDE.md`); keep live and planned features clearly identified.
+
 - [x] Next.js App Router, TypeScript, React, Tailwind CSS, and Node.js 22 deployment configuration.
 - [x] Server-side Gemini REST calls in `lib/gemini-rest.ts`; API credentials are read from server environment variables.
 - [x] Deploy the app as a Next.js server on Vercel, with dynamic outline, chapter, and PDF routes.
