@@ -4,6 +4,20 @@ Last reviewed: 2026-11-20 (Asia/Bangkok).
 
 Checked items describe implemented work or the specific verification named. They do not mean every generated book has been reviewed for accuracy or teaching quality.
 
+## Account work added on this branch — 20 November 2026
+
+- [x] Map verified Google subjects to permanent UUID profiles without matching-email auto-linking; retain the existing Google browser book key after reauthentication.
+- [x] Add signup, verification, resend, email/password sign-in and password-reset forms/routes.
+- [x] Store salted Argon2id hashes; require email verification and prevent anonymous overwrite of pending accounts.
+- [x] Bind expiring single-use links to purpose/email/credential revision, require POST, and revoke prior sessions on password reset.
+- [x] Add shared authentication limits; install migration 003 with private grants in Supabase.
+- [x] Prepare Resend delivery with a timeout and generic responses; keep passwords/tokens out of logs.
+- [x] Pass 36 unit/lifecycle tests, 22 schema checks, lint, production build, 11 legacy HTTP checks and 8 hosted account HTTP checks; remove temporary hosted test accounts.
+- [ ] Configure email sender credentials/address and test delivery to real inboxes. The owner has no email service yet and requested preparation only.
+- [ ] Deploy these account changes with restricted database/email secrets; retest real Google callback and HTTPS behavior.
+
+The older production behavior and milestone checks below are retained for context. Implemented account flows above do not mean email delivery or deployment is complete.
+
 ## Current product
 
 `Topic -> Book outline -> Up to two concurrent chapters -> Ordered Markdown manuscript -> Markdown/PDF download`
@@ -103,9 +117,9 @@ Live app: https://learning-space-delta.vercel.app/
 - [x] Create dedicated Google Cloud project/client and register exact localhost/production callbacks; verify real Google sign-in, profile/reload persistence, and sign-out/protected-page denial locally and on the deployed domain.
 - [x] Save Google credentials and distinct local/production session secrets privately; merge to main, deploy, and verify main CI success.
 - [ ] Complete Google publishing/branding requirements and verify access beyond the registered owner before public launch (currently External/Testing).
-- [ ] Support both Google sign-in and self-service account creation; decide the registration method (for example, email/password) and include email verification and password recovery if passwords are supported.
-- [ ] Persist both Google-authenticated and newly registered accounts as user records in PostgreSQL. Create or link a profile on a user's first Google sign-in, and use the database record as the durable account identity rather than relying on the browser session alone.
-- [ ] For password-based registration, store only a secure password hash; never store or log plaintext passwords.
+- [x] Implement Google and email/password signup with verification/recovery on this branch; inbox delivery and deployment remain pending above.
+- [x] Persist Google-authenticated and newly registered profiles with UUIDs when `DATABASE_AUTH_URL` is configured.
+- [x] Store only secure password hashes; never store or log plaintext passwords.
 - [x] Choose PostgreSQL and locate the owner's Supabase Free Learning space project in Sydney (`wgzfhrtibckrikcppmlq`).
 - [ ] Choose/provision private object storage for saved PDF/export files.
 - [x] Design a PostgreSQL schema for profiles, folders, books, chapters, generation attempts, and private export metadata; add executable migration and isolated ownership/constraint checks in `db/` (not connected or deployed).

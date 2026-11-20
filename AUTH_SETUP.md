@@ -1,5 +1,31 @@
 # Google account sign-in setup
 
+## Account expansion on this branch — 20 November 2026
+
+This branch adds permanent Supabase UUID profiles for Google and email/password accounts, signup at `/signup`, verification at `/verify-email`, email/password sign-in at `/signin`, resend at `/resend-verification`, recovery at `/forgot-password`, and password replacement at `/reset-password`. These changes are not yet deployed. The sections below describe the earlier deployed Google-only release unless explicitly updated here.
+
+`DATABASE_AUTH_URL` activates permanent accounts using the restricted `learning_space_authenticator` role. The named Supabase project already has migrations 001, 002 and 003. `node db/apply-auth-security.mjs` applies/checks only migration 003 and its private grants. No migration runs during build or sign-in. Never deploy the administrator password.
+
+Passwords contain 15–128 characters and use salted Argon2id (19 MiB, two passes, one lane). Spaces, symbols, and Unicode are preserved. Signup creates an unverified profile. Verification requires both the email link and the chosen signup password, protecting against activating someone else's pre-registered password. Repeated anonymous signup cannot replace an existing password/name. Matching Google/password emails create separate accounts; explicit account linking is not implemented.
+
+Verification links expire in 60 minutes and reset links in 20 minutes. Only token digests are stored. Links use a URL fragment that is removed from the address bar after loading. GET never consumes a link; completion requires same-origin JSON POST. Links are bound to purpose, email and credential revision, and consumed under database locks. Reset increments the account session version. Authenticated requests check that version to revoke old sessions. Cookies remain encrypted, HTTP-only, SameSite=Lax, secure on HTTPS, with a seven-day lifetime.
+
+Database-backed limits protect login, signup, email requests and link consumption across instances. Buckets contain keyed digests, not raw emails or tokens. Generation quotas remain separate work. Existing Google sessions must sign in again when database mode is activated; their original browser book storage key is retained after Google reauthentication.
+
+### Connect email delivery
+
+The owner has no email service yet and requested preparation of the connection. The adapter uses Resend's fixed HTTPS API. Configure a sender with Resend, then privately save `RESEND_API_KEY` and `AUTH_EMAIL_FROM` in `.env.local`, and later Vercel Production. Use an address authorized by the provider; normal public delivery requires a verified sending domain. Do not use a Gmail password or paste keys in chat. No sender credentials are configured and real inbox delivery has not been tested. See [Resend sending documentation](https://resend.com/docs/api-reference/emails/send-email).
+
+Without sender configuration, signup/resend/recovery fail clearly before creating accounts or links. Google sign-in and already-verified email sign-in can still work. After adding the sender, restart, create an account, open the received link, enter the signup password, sign in, request recovery, replace the password, and confirm the old password and old session fail. Repeat after deployment over HTTPS and verify Secure cookies.
+
+### Verification on this branch
+
+36 unit/lifecycle tests, 22 schema checks, lint, production build, 11 legacy HTTP checks and 8 hosted account HTTP checks passed. Lifecycle tests use restricted PostgreSQL privileges and check shared rate-limit buckets/expiry. Legacy HTTP checks explicitly disable database configuration. The hosted check creates temporary `.invalid` accounts, captures test email links in memory, exercises real HTTP verification/login/reset/session behavior against Supabase, and deletes its exact test UUID/email pairs. It sends no external email and does not test Google consent.
+
+Run the usual `npm test`, `npm run test:db`, `npm run lint`, `npm run build`, and `npm run test:auth`. The hosted test is deliberately opt-in: `node --experimental-strip-types tests/account-hosted-smoke.mjs --allow-hosted-test`. Read the script first; it needs private local database configuration and must not run in ordinary CI.
+
+Cloud book saving, private file storage, guest import, public Google publication, email delivery and deployment of these account changes remain pending. Earlier release notes below are retained as history.
+
 Status: merged into `main` through PR #1 (`e6290c7`) and deployed. Real Google sign-in, account profile, reload persistence, and sign-out/protected-page denial passed both locally and on `https://learning-space-delta.vercel.app`. Release notes reviewed on 2026-11-20.
 
 Google Cloud project: **Learning Space** (`mystic-tempo-515211-r3`). The **Learning Space Web** OAuth client has exact localhost/production callbacks registered. Branding/contact policy setup is saved, the app is in External/Testing mode, and the owner is registered as a test user. Credentials are stored privately in the ignored local environment file and Vercel Production secrets. A separate random production session secret is configured. Preview deployments have not been configured for Google login.

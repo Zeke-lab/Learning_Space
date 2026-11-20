@@ -16,6 +16,7 @@ async function withServer(port, configured, run) {
   const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "-p", String(port)], {
     env: { ...process.env, NEXTAUTH_URL: base, NEXTAUTH_URL_INTERNAL: base,
       NEXTAUTH_SECRET: secret, GOOGLE_CLIENT_ID: "test-client.apps.googleusercontent.com",
+      DATABASE_AUTH_URL: "", RESEND_API_KEY: "", AUTH_EMAIL_FROM: "",
       GOOGLE_CLIENT_SECRET: configured ? "test-only-google-secret" : "" },
     stdio: ["ignore", "pipe", "pipe"],
   });

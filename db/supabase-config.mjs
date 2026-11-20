@@ -1,7 +1,10 @@
 // Server/setup tooling only. No browser database client or public credentials.
 import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 
-const supabaseCa=readFileSync(new URL('./certificates/supabase-root-2021.crt',import.meta.url),'utf8');
+// Next's bundler rewrites import.meta URLs. The traced certificate lives at this
+// project-root path in local tooling and the deployed server function bundle.
+const supabaseCa=readFileSync(resolve(process.cwd(),'db/certificates/supabase-root-2021.crt'),'utf8');
 export const projectRef = 'wgzfhrtibckrikcppmlq';
 export const poolerHost = 'aws-1-ap-southeast-2.pooler.supabase.com';
 
