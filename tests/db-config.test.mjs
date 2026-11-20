@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {X509Certificate} from 'node:crypto';
 import { connectionConfig, supabaseUrl, poolerHost, projectRef } from '../db/supabase-config.mjs';
 
 test('Supabase setup encodes password symbols without changing destination',()=>{
@@ -12,6 +13,10 @@ test('Supabase setup encodes password symbols without changing destination',()=>
 test('Supabase connections verify TLS certificates and set bounded timeouts',()=>{
   const config=connectionConfig(supabaseUrl('learning_space_app','fixture'),'learning_space_app');
   assert.equal(config.ssl.rejectUnauthorized,true);
+  const certificate=new X509Certificate(config.ssl.ca);
+  assert.equal(certificate.ca,true);
+  assert.equal(certificate.fingerprint256,'80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA');
+  assert.ok(Date.parse(certificate.validTo)>Date.now());
   assert.equal(config.connectionTimeoutMillis,15000);
   assert.equal(config.statement_timeout,15000);
 });

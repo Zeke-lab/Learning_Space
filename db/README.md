@@ -1,8 +1,24 @@
 # Database design: Learning Space
 
-Status: proposed PostgreSQL 16+ schema, not a provisioned database and not wired to the app. Existing books remain in browser localStorage. No migration runs automatically during build/deploy. Google login can be tested before connecting a database.
+Status: schemas and restricted roles installed in the existing Supabase Free **Learning space** project (`wgzfhrtibckrikcppmlq`, Sydney) on 2026-11-20. Both migrations ran in one transaction through the SQL Editor after preflight confirmed zero application tables. PostgreSQL reports nine application/authentication tables. Both restricted role connections pass hosted TLS/privilege/RLS checks. The application's sign-in and book APIs are not wired to the database yet; existing books remain in browser localStorage. No migration runs automatically during build/deploy.
 
-Account schema updated on 2026-11-20: apply `001_initial.sql` then `002_account_identities.sql`. The second migration replaces Google-only primary keys with permanent UUID account IDs and adds private authentication tables. The live app still uses its existing Google subject sessions until a later server integration is implemented.
+Account schema updated on 2026-11-20: new databases apply `001_initial.sql` then `002_account_identities.sql`. Both are already applied to the named Supabase project; do not rerun them there. The second migration replaces Google-only primary keys with permanent UUID account IDs and adds private authentication tables. The live app still uses its existing Google subject sessions until a later server integration is implemented.
+
+Hosted read-only verification confirmed forced RLS on all six content tables, and no schema USAGE for either `anon` or `authenticated` on either application schema. The three authentication tables intentionally use private schema/table grants rather than content-owner RLS. This verifies metadata/grants, not two-account application behavior or a connection from the deployed app.
+
+## Supabase connection setup and verification
+
+Completed for this project: role provisioning and both `db:check` connections passed on 2026-11-20. Do not rerun provisioning or change existing role passwords. The steps below describe setup for reference; use `npm run db:check` to repeat the read-only connection checks.
+
+1. Add the existing database password privately to the ignored `.env.local`: `SUPABASE_DB_PASSWORD="your-existing-password"`. This is the database password from project creation, not a Supabase API key or Google password. Do not paste it in chat or reset it merely to configure this app.
+2. Run `npm run db:provision`. It connects only to this project's session pooler with certificate verification, checks that the UUID schema exists, and creates restricted `learning_space_app` and `learning_space_authenticator` login roles. Existing roles are never silently rotated. This does not change Google sign-in or enable cloud saving.
+3. The script writes generated role URLs to ignored `.env.local` as `DATABASE_URL` and `DATABASE_AUTH_URL`. A private `.env.database.pending.local` recovery copy is written before remote role creation. Keep that copy private, especially if provisioning fails; its existence prevents blindly overwriting recovery credentials.
+4. Run `npm run db:check` to test both role connections, role flags, forced content RLS, missing-context denial and separation of authentication/content access. It reads no user records or password hashes. Connection errors report safe codes rather than passwords/URLs.
+5. Once checks pass, integrate the server authentication/profile and book APIs in the next stage, then save only restricted role URLs to Vercel. Never deploy the administrator password. No database credentials are currently configured in Vercel by these scripts.
+
+The content role can read its own profile through RLS and manage owned books/chapters/folders/attempts/exports. It cannot read authentication tables or create profiles. The authentication role can manage identity/credential/challenge records and create/update profiles with trusted transaction context; it cannot read books. Neither role owns tables or has superuser, create-database, create-role, or RLS-bypass privileges. The privileged administrator connection is used only by the manual provisioning script.
+
+The pooler hostname and project reference were read from this project's Connect dialog and are pinned in `supabase-config.mjs`. Password symbols are URL-encoded and TLS certificate validation cannot be disabled by URL parameters. The official dashboard CA certificate is bundled in `db/certificates/supabase-root-2021.crt`; it resolved `SELF_SIGNED_CERT_IN_CHAIN` without disabling certificate/hostname verification. Its source and fingerprint are documented in `db/certificates/README.md`. [Supabase connection guidance](https://supabase.com/docs/guides/database/connecting-to-postgres), [node-postgres TLS configuration](https://node-postgres.com/features/ssl).
 
 ## Entities and ownership
 

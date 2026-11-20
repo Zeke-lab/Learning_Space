@@ -1,4 +1,7 @@
 // Server/setup tooling only. No browser database client or public credentials.
+import {readFileSync} from 'node:fs';
+
+const supabaseCa=readFileSync(new URL('./certificates/supabase-root-2021.crt',import.meta.url),'utf8');
 export const projectRef = 'wgzfhrtibckrikcppmlq';
 export const poolerHost = 'aws-1-ap-southeast-2.pooler.supabase.com';
 
@@ -25,7 +28,7 @@ export function connectionConfig(value, role) {
   return {
     host: url.hostname, port: Number(url.port), database: 'postgres',
     user: decodeURIComponent(url.username), password: decodeURIComponent(url.password),
-    ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 15000,
+    ssl: { rejectUnauthorized: true, ca: supabaseCa }, connectionTimeoutMillis: 15000,
     statement_timeout: 15000, application_name: 'LearningSpace:database-setup',
   };
 }

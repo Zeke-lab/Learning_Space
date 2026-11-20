@@ -17,7 +17,7 @@ Google's app remains in **Testing** mode, so this release is ready for the regis
 
 There is no database adapter in this stage. Account identity/profile lives in the encrypted app session, and books still live in this browser. Persistent user rows, private book/PDF storage, ownership-checked file endpoints, and multi-device sync are the next stage. Browser storage separation is not a replacement for server-side authorization.
 
-The database schema now includes permanent UUID accounts, separate Google identities and private optional password/verification/reset tables through migration `002_account_identities.sql`; see [db/README.md](db/README.md). It is installed in the owner's Supabase project but is not wired into this auth handler. Restricted connections are pending private credential setup. Existing live sessions still use `google:<sub>` and remain unchanged. The future database integration must resolve that verified identity to a UUID before setting any database ownership context; self-service registration is not available yet.
+The database schema now includes permanent UUID accounts, separate Google identities and private optional password/verification/reset tables through migration `002_account_identities.sql`; see [db/README.md](db/README.md). It is installed in the owner's Supabase project but is not wired into this auth handler. Restricted content/authentication role connections are configured privately and pass hosted TLS/RLS/privilege checks. Existing live sessions still use `google:<sub>` and remain unchanged. The future database integration must resolve that verified identity to a UUID before setting any database ownership context; self-service registration is not available yet.
 
 ## Create the Google OAuth client
 

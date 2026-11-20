@@ -95,7 +95,7 @@ Clearing browser/site data can remove saved work. A Markdown or PDF download pro
 
 ## 5. Understand the database organization
 
-The database is the foundation for future account records and book history. The tables exist in the owner's Supabase project. Restricted connections and the server save/load functions still need to be completed before they store application content.
+The database is the foundation for future account records and book history. The tables exist in the owner's Supabase project, and both restricted application/authentication connections have passed hosted checks. The sign-in integration and server save/load functions still need to be completed before they store application content.
 
 The account design uses a permanent UUID: an internal account number independent of a Google email address. Google identities and optional password credentials refer to that account. A matching email address alone must not automatically merge two accounts.
 
@@ -143,7 +143,7 @@ PDFs already downloaded do not change when the website is updated. Download agai
 The work should proceed in this order:
 
 1. **Account schema - completed.** Permanent account IDs and private login-method records are designed and tested.
-2. **Hosted database - partly completed.** All nine tables are installed in Supabase. The existing database password is needed privately to finish restricted connections and hosted connection checks.
+2. **Hosted database - setup completed.** All nine tables and restricted roles are installed in Supabase. Both role connections passed TLS, privilege, and ownership-policy checks. The live app is not yet using these connections.
 3. **Persistent account profiles - pending.** Resolve verified Google identities to database account IDs, then create/find a durable profile on sign-in.
 4. **Cloud books - pending.** Add ownership-checked save/load functions, book history, folders, and cross-device access.
 5. **Browser-book import - pending.** Ask before importing local books, prevent duplicate imports, and retain local content until cloud saving succeeds.

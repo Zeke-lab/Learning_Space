@@ -111,7 +111,7 @@ Live app: https://learning-space-delta.vercel.app/
 - [x] Design a PostgreSQL schema for profiles, folders, books, chapters, generation attempts, and private export metadata; add executable migration and isolated ownership/constraint checks in `db/` (not connected or deployed).
 - [x] Step 1: add a forward migration to permanent UUID account IDs, separate Google identity mapping, and private optional password/verification/reset tables; verify populated-data migration and ownership isolation with 22 database checks. Registration endpoints and a hosted connection remain pending.
 - [x] Step 2a: apply migrations 001/002 to the owner's empty Supabase project; verify nine tables, forced RLS on six content tables, and denied schema access for anon/authenticated API roles.
-- [ ] Step 2b: privately configure the existing database password, provision restricted content/authentication roles, and pass hosted connection checks before connecting the app. Setup/check scripts are prepared; no administrator credentials should be deployed.
+- [x] Step 2b: privately configure the existing database password, provision restricted content/authentication roles, and pass both hosted connection checks over certificate-verified TLS. Bundle the official Supabase CA certificate; no administrator credentials are deployed.
 - [ ] Connect verified Google identities to persistent profiles and implement transaction-scoped, ownership-checked book/chapter APIs before moving browser data into cloud storage.
 - [ ] Associate every saved book/file with an authenticated owner and enforce ownership on every read/write/download.
 - [ ] Add book history and fetch a user's saved books/files back into the UI.
