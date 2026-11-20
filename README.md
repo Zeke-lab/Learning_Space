@@ -6,9 +6,11 @@ Live app: https://learning-space-delta.vercel.app/
 
 Repository: https://github.com/Zeke-lab/Learning_Space
 
+For a plain-language tour with workflow diagrams, read [APPLICATION_GUIDE.md](APPLICATION_GUIDE.md). With the local server running, regenerate its reading copy using `node scripts/export-application-guide.mjs`.
+
 Status reviewed: 2026-11-20. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
 
-Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. The app has account sessions and separate browser workspaces; it does not yet persist users/books in a database or sync books/PDFs across devices.
+Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. This development branch adds permanent Supabase profiles, email/password signup, verification/recovery, password hashing, session revocation and authentication limits. Resend is connected locally and reports both real test emails delivered to the owner. Other recipients need an owned, verified sending domain. These account changes are not yet deployed. Books/PDFs are not synced across devices.
 
 ## Current features
 
@@ -83,7 +85,7 @@ npm run lint
 npm run build
 ```
 
-The test suite currently contains 12 Markdown-rendering and chapter-queue tests. GitHub Actions runs tests, lint, and the production build/type check.
+The unit suite contains 24 Markdown, chapter-queue, auth-policy and database-configuration tests. Run `npm run test:db` for 22 isolated database schema/ownership checks and `npm run test:auth` after a production build for 11 synthetic-session HTTP checks. GitHub Actions runs these checks, lint, and the production build/type check. Real Google login is verified separately as described in AUTH_SETUP.md.
 
 For a production-mode local PDF check, run these in separate terminals:
 

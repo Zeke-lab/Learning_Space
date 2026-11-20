@@ -1,0 +1,129 @@
+{
+  "request": {
+    "url": "https://learning-space-delta.vercel.app/api/learn/chapter",
+    "header": [
+      {
+        "disabled": false,
+        "description": {
+          "content": "Header: Content-Type",
+          "type": "text/plain"
+        },
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "User-Agent",
+        "value": "PostmanRuntime/7.56.1",
+        "system": true
+      },
+      {
+        "key": "Accept",
+        "value": "*/*",
+        "system": true
+      },
+      {
+        "key": "Cache-Control",
+        "value": "no-cache",
+        "system": true
+      },
+      {
+        "key": "Postman-Token",
+        "value": "12a2913b-1544-4e56-b73c-6ee9d5ef6a24",
+        "system": true
+      },
+      {
+        "key": "Host",
+        "value": "learning-space-delta.vercel.app",
+        "system": true
+      },
+      {
+        "key": "Accept-Encoding",
+        "value": "gzip, deflate, br",
+        "system": true
+      },
+      {
+        "key": "Connection",
+        "value": "keep-alive",
+        "system": true
+      },
+      {
+        "key": "Content-Length",
+        "value": "1542",
+        "system": true
+      }
+    ],
+    "method": "POST",
+    "body": "{\r\n  \"bookTitle\": \"MCP (Model Context Protocol) Server ရေးသားခြင်းနှင့် လက်တွေ့စမ်းသပ်ခြင်း လမ်းညွှန်\",\r\n  \"nextChapterTitle\": \"MCP Architecture အသေးစိတ် လေ့လာခြင်း\",\r\n  \"chapter\": {\r\n    \"chapterNumber\": 1,\r\n    \"chapterTitle\": \"MCP (Model Context Protocol) အခြေခံနှင့် နားလည်သဘောပေါက်ခြင်း\",\r\n    \"estimatedPages\": 20,\r\n    \"coreGoal\": \"MCP ၏ လိုအပ်ချက်၊ ၎င်း၏ အဓိက အကျိုးကျေးဇူးများနှင့် AI Application များတွင် မည်သို့ အသုံးဝင်သည်ကို နားလည်စေရန်။\",\r\n    \"sections\": [\r\n      \"MCP ဆိုသည်မှာ အဘယ်နည်း။\",\r\n      \"LLM များတွင် အချက်အလက် (Context) ထည့်သွင်းခြင်းဆိုင်ရာ စိန်ခေါ်မှုများ\",\r\n      \"MCP မပေါ်ပေါက်မီနှင့် ပေါ်ပေါက်ပြီး ကွာခြားချက်များ\",\r\n      \"MCP Ecosystem ၏ အဓိက အစိတ်အပိုင်းများ (Host, Client, Server)\"\r\n    ],\r\n    \"prerequisiteConceptsCovered\": [\r\n      \"Large Language Models (LLMs) အခြေခံ\",\r\n      \"API နှင့် Protocol သဘောတရားများ\"\r\n    ]\r\n  }\r\n}\r\n"
+  },
+  "response": {
+    "id": "e61ec2b0-fd02-4f90-93ae-eb19336cf3e4",
+    "status": "OK",
+    "code": 200,
+    "header": [
+      {
+        "key": "Cache-Control",
+        "value": "public, max-age=0, must-revalidate"
+      },
+      {
+        "key": "Content-Encoding",
+        "value": "br"
+      },
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "Date",
+        "value": "Sun, 15 Nov 2026 12:15:03 GMT"
+      },
+      {
+        "key": "Server",
+        "value": "Vercel"
+      },
+      {
+        "key": "Strict-Transport-Security",
+        "value": "max-age=63072000; includeSubDomains; preload"
+      },
+      {
+        "key": "X-Matched-Path",
+        "value": "/api/learn/chapter"
+      },
+      {
+        "key": "X-Vercel-Cache",
+        "value": "MISS"
+      },
+      {
+        "key": "X-Vercel-Id",
+        "value": "sin1::iad1::9rlnw-1794744883526-613cd563f48c"
+      },
+      {
+        "key": "Transfer-Encoding",
+        "value": "chunked"
+      }
+    ],
+    "cookie": [],
+    "responseTime": 20589,
+    "responseSize": 18624,
+    "downloadedBytes": 5114,
+    "body": "{\"chapterNumber\":1,\"chapterTitle\":\"MCP (Model Context Protocol) အခြေခံနှင့် နားလည်သဘောပေါက်ခြင်း\",\"markdown\":\"# Chapter 1: MCP (Model Context Protocol) အခြေခံနှင့် နားလည်သဘောပေါက်ခြင်း\\n\\n**Core Goal:** MCP ၏ လိုအပ်ချက်၊ ၎င်း၏ အဓိက အကျိုးကျေးဇူးများနှင့် AI Application များတွင် မည်သို့ အသုံးဝင်သည်ကို နားလည်စေရန်။  \\n**Estimated Reading Time:** 20 Pages (~35-40 Minutes)\\n\\n---\\n\\n## Part I - The Foundational Layer (အခြေခံ သဘောတရားများ)\\n\\nMCP (Model Context Protocol) ကို စနစ်တကျ မလေ့လာမီ၊ ၎င်း၏ အောက်ခြေတွင် ရှိသော အခြေခံ နည်းပညာ သဘောတရား နှစ်ခုကို မဖြစ်မနေ နားလည်ထားရန် လိုအပ်ပါသည်။\\n\\n### ၁။ Large Language Models (LLMs) နှင့် Context Window\\n* **အဓိပ္ပာယ်သတ်မှတ်ချက် (Definition):** Large Language Models (LLMs) ဆိုသည်မှာ ကြီးမားသော Text Data များပေါ်တွင် လေ့ကျင့်ပေးထားသည့် Artificial Intelligence Model များ ဖြစ်ကြသည်။ ၎င်းတို့သည် စာသားများကို နားလည်ခြင်း၊ ပြန်လည်ထုတ်လုပ်ခြင်းနှင့် မေးခွန်းများကို ဖြေဆိုခြင်းများ ပြုလုပ်နိုင်သည်။\\n* **ခိုင်းနှိုင်းချက် (Analogy):** LLM တစ်ခုသည် ဗဟုသုတအလွန်ကြွယ်ဝသော်လည်း အင်တာနက် သို့မဟုတ် ပြင်ပကမ္ဘာနှင့် ချိတ်ဆက်ထားခြင်းမရှိသော \\\"စာကြည့်တိုက်မှူး\\\" တစ်ဦးနှင့် တူပါသည်။ ၎င်း၏ အာရုံစူးစိုက်နိုင်စွမ်း (Context Window) သည် ၎င်းရှေ့တွင် ဖြန့်ထားသော စာပွဲခုံ အရွယ်အစားနှင့် တူသည်။ စာပွဲခုံပေါ်တွင် တင်ပေးထားသော အချက်အလက်များ (Prompt/Context) ကိုသာ ထိုအချိန်တွင် ချက်ချင်းကြည့်ပြီး ဖြေဆိုနိုင်ပါသည်။\\n* **အရေးပါပုံ (Why it matters):** LLM ၏ Pre-trained Data တွင် ကုမ္ပဏီတစ်ခု၏ သီးသန့် အချက်အလက်များ သို့မဟုတ် နောက်ဆုံးပေါ် Live Data များ မပါဝင်ပါ။ ထို့ကြောင့် LLM ကို ပိုမို တိကျစွာ အသုံးပြုနိုင်ရန် ပြင်ပ အချက်အလက်များ (Context) ကို ထည့်သွင်းပေးရန် လိုအပ်ပါသည်။\\n\\n### ၂။ API နှင့် Protocol သဘောတရားများ\\n* **အဓိပ္ပာယ်သတ်မှတ်ချက် (Definition):** \\n  * **API (Application Programming Interface):** Software စနစ်တစ်ခုမှ အခြား Software စနစ်တစ်ခုသို့ အချက်အလက်များ ပေးပို့ရန် သို့မဟုတ် ဝန်ဆောင်မှုများကို ရယူရန် ပံ့ပိုးပေးထားသော လမ်းကြောင်း ဖြစ်သည်။\\n  * **Protocol:** ကွန်ပျူတာ စနစ်များ သို့မဟုတ် Software များ အချင်းချင်း ဆက်သွယ်ရာတွင် လိုက်နာရမည့် \\\"ဘုံစည်းမျဉ်းစနစ်\\\" (Standard Rules) ဖြစ်သည်။\\n* **ခိုင်းနှိုင်းချက် (Analogy):** API သည် စားသောက်ဆိုင်မှ \\\"ဝေယျာဝစ္စဆောင်ရွက်သူ (Waiter)\\\" နှင့် တူပြီး၊ Protocol သည် မီးဖိုချောင်နှင့် စားသုံးသူအကြား စကားပြောဆိုရန် သတ်မှတ်ထားသော \\\"ဘုံဘာသာစကား (Language Standard)\\\" နှင့် တူပါသည်။\\n* **အရေးပါပုံ (Why it matters):** Standard ဖြစ်သော Protocol တစ်ခုမရှိပါက စနစ်တစ်ခုစီအတွက် Custom API များ အသစ်ထပ်မံ ရေးသားနေရမည်ဖြစ်ပြီး ရင်းနှီးမြှုပ်နှံမှုနှင့် ရှုပ်ထွေးမှုများ ကြီးမားလာမည် ဖြစ်သည်။\\n\\n---\\n\\n## Part II - The Core Concept (ပင်မ သဘောတရားများ)\\n\\n### 1. MCP ဆိုသည်မှာ အဘယ်နည်း။\\n\\n**Model Context Protocol (MCP)** ဆိုသည်မှာ AI Model များ (ဥပမာ- Claude, GPT) နှင့် ပြင်ပ အချက်အလက် စနစ်များ (ဥပမာ- Databases, Filesystems, GitHub, Slack) အကြား လုံခြုံစိတ်ချစွာ အချက်အလက်များ လှဲလှယ်ရန်နှင့် ဆက်သွယ်ရန် Anthropic မှ စတင်မိတ်ဆက်ခဲ့သော **Open Standard Protocol** တစ်ခု ဖြစ်သည်။\\n\\nMCP သည် USB Type-C standard နှင့် ဆင်တူပါသည်။ USB Type-C စံနှုန်း မပေါ်မီက ကွန်ပျူတာတွင် Mouse, Keyboard, External Hard Drive များအတွက် Port အမျိုးမျိုး လိုအပ်ခဲ့သော်လည်း၊ USB-C ပေါ်ပေါက်လာသောအခါ Single Standard ဖြင့် စက်ပစ္စည်းအားလုံးကို ချိတ်ဆက်နိုင်ခဲ့သကဲ့သို့ MCP သည်လည်း AI Context Integration အတွက် Universal Standard ဖြစ်သည်။\\n\\n### 2. LLM များတွင် အချက်အလက် (Context) ထည့်သွင်းခြင်းဆိုင်ရာ စိန်ခေါ်မှုများ\\n\\nMCP မပေါ်ပေါက်မီက LLM အခြေပြု Application များ ရေးသားရာတွင် **N x M Problem** ဟုခေါ်သော ကြီးမားသည့် စိန်ခေါ်မှုတစ်ခု ရှိခဲ့သည်။\\n\\n* **N (LLM Application များ):** Claude Desktop, VS Code AI Extension, Custom Enterprise Chatbots\\n* **M (Data Sources များ):** PostgreSQL, GitHub, Local Filesystem, Jira, Notion\\n\\nApplication တိုင်း (N) သည် Data Source တိုင်း (M) နှင့် ချိတ်ဆက်ရန်အတွက် သီးသန့် Integration Code များ ရေးသားခဲ့ရသည်။ ထို့ကြောင့် integration ပေါင်း $N \\\\times M$ ခုအထိ ရှုပ်ထွေးသွားပြီး ပြုပြင်ထိန်းသိမ်းရခက်ခဲလာသည်။\\n\\n```\\n[ Traditional Custom Integration (M x N Problem) ]\\n\\nClaude App  ---- Custom Code ----> PostgreSQL\\nClaude App  ---- Custom Code ----> GitHub\\nVS Code AI  ---- Custom Code ----> PostgreSQL\\nVS Code AI  ---- Custom Code ----> GitHub\\n```\\n\\n### 3. MCP မပေါ်ပေါက်မီနှင့် ပေါ်ပေါက်ပြီး ကွာခြားချက်များ\\n\\n| အကြောင်းအရာ | MCP မပေါ်ပေါက်မီ (Before MCP) | MCP ပေါ်ပေါက်ပြီး (After MCP) |\\n| :--- | :--- | :--- |\\n| **Integration Standard** | Standard မရှိပါ။ Custom API များနှင့် Custom Tools များ ရေးသားရသည်။ | Universal Standard Protocol တစ်ခုတည်းကို သုံးသည်။ |\\n| **Reusability** | Code တစ်ခုကို App တစ်ခုအတွက်သာ သုံးနိုင်ပြီး အခြား App တွင် ပြန်သုံးရန် ခက်ခဲသည်။ | MCP Server တစ်ခု ရေးသားထားပါက မည်သည့် MCP-compatible Host တွင်မဆို တိုက်ရိုက် ပြန်သုံးနိုင်သည်။ |\\n| **Scalability** | Data Source သစ်တစ်ခု တိုးတိုင်း App အားလုံးတွင် Code သစ် လိုက်ရေးရသည်။ | Server သစ် တစ်ခု ထည့်လိုက်ရုံဖြင့် Host အားလုံးက ချက်ချင်း အသုံးပြုနိုင်သည်။ |\\n| **Security Architecture** | Data Access ကို အလွယ်တကူ ထိန်းချုပ်ရန် ခက်ခဲသည်။ | Client-Server Architecture ဖြစ်၍ Permission နှင့် Isolation ကို သီးသန့် ထိန်းချုပ်နိုင်သည်။ |\\n\\n### 4. MCP Ecosystem ၏ အဓိက အစိတ်အပိုင်းများ (Host, Client, Server)\\n\\nMCP Ecosystem တွင် အဓိက အစိတ်အပိုင်း ၃ ခု ပါဝင်သည်-\\n\\n1. **MCP Host (Host Application):** LLM ကို ကိုင်တွယ်အသုံးပြုနေသော အဓိက Application (ဥပမာ- Claude Desktop App, Cursor Editor, Custom AI Workspace) ဖြစ်သည်။\\n2. **MCP Client:** MCP Host အတွင်း၌ တည်ရှိပြီး MCP Server များနှင့် Protocol စည်းမျဉ်းအတိုင်း စကားပြောပေးသော တွဲဖက် Engine ဖြစ်သည်။ Client သည် Host နှင့် Server အကြား ချိတ်ဆက်မှု (Session) ကို တည်ဆောက်ပေးသည်။\\n3. **MCP Server:** သီးသန့် အချက်အလက် သို့မဟုတ် Function များ (ဥပမာ- Database Read/Write, File Access, API Service) ကို သိုလှောင်ထားပြီး Client မှ တောင်းဆိုလာသော Context များ၊ Tools များနှင့် Prompts များကို ပြန်လည် ထုတ်ပေးသော စနစ်ဖြစ်သည်။\\n\\n#### MCP Architecture Overview (ASCII Diagram)\\n\\n```\\n+-------------------------------------------------------------------------+\\n|                                MCP HOST                                 |\\n|  (e.g., Claude Desktop / VS Code / Enterprise Chatbot)                   |\\n|                                                                         |\\n|   +-----------------------------------------------------------------+   |\\n|   |                           MCP CLIENT                            |   |\\n|   +-----------------------------------------------------------------+   |\\n+-----------------------------------|-------------------------------------+\\n                                    | (JSON-RPC 2.0 over Stdio/SSE)\\n                                    v\\n+-------------------------------------------------------------------------+\\n|                               MCP SERVER                                |\\n|  (e.g., Postgres Server / Github Server / Filesystem Server)            |\\n|                                                                         |\\n|   +------------------+  +------------------+  +---------------------+   |\\n|   | Resources (Data) |  | Tools (Actions)  |  | Prompts (Templates) |   |\\n|   +------------------+  +------------------+  +---------------------+   |\\n+-----------------------------------|-------------------------------------+\\n                                    v\\n+-------------------------------------------------------------------------+\\n|                    DATA SOURCES / EXTERNAL SERVICES                     |\\n|  (PostgreSQL DB, Git Repository, File System, Web APIs)                  |\\n+-------------------------------------------------------------------------+\\n```\\n\\n### Key Takeaways (အဓိက မှတ်သားဖွယ်ရာ ၃ ချက်)\\n1. **Universal Connector:** MCP သည် AI Model များ နှင့် Data Source များကို ချိတ်ဆက်ပေးသော standard open protocol ဖြစ်သည်။\\n2. **Decoupled Architecture:** MCP ၏ အကူအညီဖြင့် Data Integration Code (Server) နှင့် AI Interface Application (Host) ကို အကြွင်းမဲ့ သီးခြားခွဲထုတ်လိုက်နိုင်သောကြောင့် Code ပြန်လည်အသုံးပြုနိုင်မှု (Reusability) မြင့်မားသွားသည်။\\n3. **Three Core Primitives:** MCP Server တွင် အဓိက Feature ၃ ခု ပါဝင်သည် - **Resources** (ဖတ်ရှုနိုင်သော အချက်အလက်များ)၊ **Tools** (Execute လုပ်နိုင်သော လုပ်ဆောင်ချက်များ) နှင့် **Prompts** (ကြိုတင်ပြင်ဆင်ထားသော Prompt ပုံစံများ)။\\n\\n---\\n\\n## Part III - Practical Code / Real-World Example\\n\\nMCP Server နှင့် Client အကြား ဆက်သွယ်ရာတွင် **JSON-RPC 2.0** Protocol ဖြင့် ဆက်သွယ်ပါသည်။ အောက်ပါ Code နမူနာသည် MCP Client က MCP Server သို့ \\\"အချက်အလက်တောင်းဆိုခြင်း\\\" နှင့် Server မှ \\\"ပြန်လည်ဖြေကြားခြင်း\\\" ၏ အခြေခံ သဘောတရားကို ရူမြင်နိုင်ရန် ပြသထားခြင်း ဖြစ်သည်။\\n\\n### Scenario: Local File ၏ အကြောင်းအရာကို MCP မှတစ်ဆင့် ဖတ်ရှုခြင်း\\n\\n#### ၁။ Client မှ Server သို့ Context တောင်းဆိုခြင်း (JSON-RPC Request)\\nClient မှ Server ရှိ Resource (ဥပမာ- project_status.txt) ကို ဖတ်ရှုရန် တောင်းဆိုပုံ-\\n\\n```json\\n{\\n  \\\"jsonrpc\\\": \\\"2.0\\\",\\n  \\\"id\\\": 1,\\n  \\\"method\\\": \\\"resources/read\\\",\\n  \\\"params\\\": {\\n    \\\"uri\\\": \\\"file:///docs/project_status.txt\\\"\\n  }\\n}\\n```\\n\\n#### ၂။ Server မှ ပြန်လည် ပေးပို့သော အချက်အလက် (JSON-RPC Response)\\nMCP Server မှ အဆိုပါ File ကို ဖတ်ရှုပြီး Data / Context ကို ပြန်လည်ပေးပို့ပုံ-\\n\\n```json\\n{\\n  \\\"jsonrpc\\\": \\\"2.0\\\",\\n  \\\"id\\\": 1,\\n  \\\"result\\\": {\\n    \\\"contents\\\": [\\n      {\\n        \\\"uri\\\": \\\"file:///docs/project_status.txt\\\",\\n        \\\"mimeType\\\": \\\"text/plain\\\",\\n        \\\"text\\\": \\\"Project Alpha status: Completed 80%. Target release: Next Monday.\\\"\\n      }\\n    ]\\n  }\\n}\\n```\\n\\nဤသို့ဖြင့် MCP Host (Claude သို့မဟုတ် အခြား App) သည် ရရှိလာသော `text` Context ကို ၎င်း၏ Context Window အတွင်းသို့ ထည့်သွင်းပြီး သုံးစွဲသူအား တိကျသော အဖြေကို ပြန်လည် ပေးပို့နိုင်မည် ဖြစ်သည်။\\n\\n---\\n\\n## Part IV - Recap & Next Chapter Preview\\n\\n### Chapter 1 ပြန်လည်သုံးသပ်ချက် (Recap)\\n* LLM များသည် ၎င်းတို့၏ Context Window အတွက် ပြင်ပ အချက်အလက်များ ထည့်သွင်းပေးရန် လိုအပ်သည်။\\n* MCP မပေါ်မီက Custom Integration ကြီးစိုးခဲ့ပြီး N x M Architecture ရှုပ်ထွေးမှုများ ရှိခဲ့သည်။\\n* MCP သည် LLM Application များအတွက် Standardized Plug-and-Play Protocol တစ်ခုဖြစ်ပြီး Host, Client နှင့် Server သုံးမျိုးဖြင့် ပေါင်းစပ်ထားသည်။\\n* MCP တည်ဆောက်ပုံသည် JSON-RPC Protocol အပေါ် အခြေခံထားပြီး Data များကို Resource, Tool နှင့် Prompt အဖြစ် ထုတ်ပေးသည်။\\n\\n### မျှော်မှန်းချက် - နောက်တစ်ခန်း (Next Chapter Preview)\\n\\n**Chapter 2: MCP Architecture အသေးစိတ် လေ့လာခြင်း**\\n\\nနောက်လာမည့် အခန်းတွင် MCP ၏ အတွင်းပိုင်း Architecture ကို ပိုမို အသေးစိတ် လေ့လာသွားမည် ဖြစ်သည်။\\n* Transport Layer များဖြစ်ကြသော **Stdio (Standard I/O)** နှင့် **SSE (Server-Sent Events)** တို့ မည်သို့ အလုပ်လုပ်ပုံ၊\\n* MCP ၏ **Lifecycle (Initialization, Protocol Negotiation, Shutdown)** သဘောတရားများ၊\\n* Security boundaries များနှင့် Connection စီမံခန့်ခွဲမှုများကို စနစ်တကျ လေ့လာသွားမည် ဖြစ်သည်။\"}"
+  },
+  "timestamp": "2026-11-15T12:15:00.665Z",
+  "tests": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "results": [
+      {
+        "name": "Chapter generated",
+        "passed": true,
+        "consoleLogs": []
+      },
+      {
+        "name": "Burmese manuscript",
+        "passed": true,
+        "consoleLogs": []
+      }
+    ]
+  },
+  "scriptLogs": []
+}

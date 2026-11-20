@@ -12,10 +12,13 @@
     "lint": "eslint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:auth": "node tests/auth-http-smoke.mjs",
-    "test:db": "node db/check-schema.mjs"
+    "test:db": "node db/check-schema.mjs",
+    "db:provision": "node db/provision-supabase.mjs",
+    "db:check": "node db/check-connection.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.74",
+    "@node-rs/argon2": "^2.2.2",
     "@sparticuz/chromium": "^153.0.0",
     "ai": "^7.0.105",
     "lucide-react": "^1.47.0",
@@ -23,6 +26,7 @@
     "mermaid": "^12.3.0",
     "next": "16.3.5",
     "next-auth": "^4.24.15",
+    "pg": "^8.23.1",
     "puppeteer-core": "^25.11.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -32,6 +36,7 @@
     "@electric-sql/pglite": "^0.5.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

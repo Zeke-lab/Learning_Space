@@ -4,6 +4,21 @@ Last reviewed: 2026-11-20 (Asia/Bangkok).
 
 Checked items describe implemented work or the specific verification named. They do not mean every generated book has been reviewed for accuracy or teaching quality.
 
+## Account work added on this branch — 20 November 2026
+
+- [x] Map verified Google subjects to permanent UUID profiles without matching-email auto-linking; retain the existing Google browser book key after reauthentication.
+- [x] Add signup, verification, resend, email/password sign-in and password-reset forms/routes.
+- [x] Store salted Argon2id hashes; require email verification and prevent anonymous overwrite of pending accounts.
+- [x] Bind expiring single-use links to purpose/email/credential revision, require POST, and revoke prior sessions on password reset.
+- [x] Add shared authentication limits; install migration 003 with private grants in Supabase.
+- [x] Prepare Resend delivery with a timeout and generic responses; keep passwords/tokens out of logs.
+- [x] Pass 38 unit/lifecycle tests, 22 schema checks, lint, production build, 11 legacy HTTP checks and 8 hosted account HTTP checks; remove temporary hosted test accounts.
+- [x] Connect a sending-only Resend key locally, restrict the shared sender to the owner test recipient, and observe Delivered status for real verification/recovery emails. Verify/reset the temporary account and remove it afterward. Revoke/replace the initial unused key before sending.
+- [ ] Configure a verified custom sending domain to email other users. The Vercel `vercel.app` address is a shared website domain, not an owned email domain. Confirm inbox/spam placement with recipients.
+- [ ] Deploy these account changes with restricted database/email secrets; retest real Google callback and HTTPS behavior.
+
+The older production behavior and milestone checks below are retained for context. Implemented account flows above do not mean email delivery or deployment is complete.
+
 ## Current product
 
 `Topic -> Book outline -> Up to two concurrent chapters -> Ordered Markdown manuscript -> Markdown/PDF download`
@@ -13,6 +28,8 @@ The app generates a curriculum first, then writes chapters independently. The ma
 ## Completed implementation
 
 ### Foundation and deployment
+
+- [x] Add a plain-language application guide with five workflow/data diagrams and a reproducible local PDF export (`APPLICATION_GUIDE.md`); keep live and planned features clearly identified.
 
 - [x] Next.js App Router, TypeScript, React, Tailwind CSS, and Node.js 22 deployment configuration.
 - [x] Server-side Gemini REST calls in `lib/gemini-rest.ts`; API credentials are read from server environment variables.
@@ -68,7 +85,8 @@ The two-request limit is per running browser batch, not a server-wide or per-acc
 
 ## Verification completed
 
-- [x] `npm test`: 12 tests passed (8 Markdown renderer cases and 4 concurrency/queue cases).
+- [x] `npm test`: 24 tests passed (8 Markdown renderer, 4 concurrency/queue, 6 auth-policy, and 6 database-configuration cases).
+- [x] `npm run test:db`: 22 isolated PostgreSQL checks passed, including forward UUID migration with existing books and isolation of private authentication records.
 - [x] Queue tests cover two concurrent requests, slot refill, stopping queued work after a failure, draining in-flight work, rejection handling, and empty/single-item queues.
 - [x] `npm run lint` and `npm run build` passed; the build includes TypeScript checking.
 - [x] GitHub build and validation checks passed for the published implementation commits below.
@@ -100,18 +118,22 @@ Live app: https://learning-space-delta.vercel.app/
 - [x] Create dedicated Google Cloud project/client and register exact localhost/production callbacks; verify real Google sign-in, profile/reload persistence, and sign-out/protected-page denial locally and on the deployed domain.
 - [x] Save Google credentials and distinct local/production session secrets privately; merge to main, deploy, and verify main CI success.
 - [ ] Complete Google publishing/branding requirements and verify access beyond the registered owner before public launch (currently External/Testing).
-- [ ] Add sign-in and user profiles with name/email.
-- [x] Choose PostgreSQL for the relational database design; hosting is not provisioned yet.
+- [x] Implement Google and email/password signup with verification/recovery on this branch; inbox delivery and deployment remain pending above.
+- [x] Persist Google-authenticated and newly registered profiles with UUIDs when `DATABASE_AUTH_URL` is configured.
+- [x] Store only secure password hashes; never store or log plaintext passwords.
+- [x] Choose PostgreSQL and locate the owner's Supabase Free Learning space project in Sydney (`wgzfhrtibckrikcppmlq`).
 - [ ] Choose/provision private object storage for saved PDF/export files.
 - [x] Design a PostgreSQL schema for profiles, folders, books, chapters, generation attempts, and private export metadata; add executable migration and isolated ownership/constraint checks in `db/` (not connected or deployed).
-- [ ] Provision development PostgreSQL, apply the migration with a separate owner role, and configure a nonprivileged runtime connection.
+- [x] Step 1: add a forward migration to permanent UUID account IDs, separate Google identity mapping, and private optional password/verification/reset tables; verify populated-data migration and ownership isolation with 22 database checks. Registration endpoints and a hosted connection remain pending.
+- [x] Step 2a: apply migrations 001/002 to the owner's empty Supabase project; verify nine tables, forced RLS on six content tables, and denied schema access for anon/authenticated API roles.
+- [x] Step 2b: privately configure the existing database password, provision restricted content/authentication roles, and pass both hosted connection checks over certificate-verified TLS. Bundle the official Supabase CA certificate; no administrator credentials are deployed.
 - [ ] Connect verified Google identities to persistent profiles and implement transaction-scoped, ownership-checked book/chapter APIs before moving browser data into cloud storage.
 - [ ] Associate every saved book/file with an authenticated owner and enforce ownership on every read/write/download.
 - [ ] Add book history and fetch a user's saved books/files back into the UI.
 - [ ] Decide how to import existing localStorage books into an account without losing local content.
 - [ ] Test that user A cannot list or download user B's books, including direct file URLs.
 
-There is currently no database shared by users. localStorage belongs to the browser profile and website origin; it does not provide authenticated per-user ownership or multi-device sync. Generated PDFs are downloaded rather than stored in a durable backend.
+There is currently no database shared by users, and the current Google sign-in implementation does not persist account records. In a typical account system, Google sign-in creates or finds a database user record on first sign-in, while self-service registration creates one; sessions then refer to that durable user identity. Password-based registration stores a password hash, not the password itself. localStorage belongs to the browser profile and website origin; it does not provide authenticated per-user ownership or multi-device sync. Generated PDFs are downloaded rather than stored in a durable backend.
 
 ### 2. Reliability and production readiness
 

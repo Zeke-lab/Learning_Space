@@ -23,9 +23,8 @@ export function safeAuthRedirect(url: string, baseUrl: string) {
   return baseUrl;
 }
 
-export function googleAuthConfigured(env: Record<string, string | undefined>) {
-  if (!env.GOOGLE_CLIENT_ID?.trim() || !env.GOOGLE_CLIENT_SECRET?.trim() ||
-    (env.NEXTAUTH_SECRET?.length ?? 0) < 32 || !env.NEXTAUTH_URL) return false;
+export function sessionAuthConfigured(env: Record<string, string | undefined>) {
+  if ((env.NEXTAUTH_SECRET?.length ?? 0) < 32 || !env.NEXTAUTH_URL) return false;
   try {
     const url = new URL(env.NEXTAUTH_URL);
     const local = url.hostname === "localhost" || url.hostname === "127.0.0.1";
@@ -34,6 +33,10 @@ export function googleAuthConfigured(env: Record<string, string | undefined>) {
   } catch {
     return false;
   }
+}
+
+export function googleAuthConfigured(env: Record<string, string | undefined>) {
+  return Boolean(env.GOOGLE_CLIENT_ID?.trim() && env.GOOGLE_CLIENT_SECRET?.trim() && sessionAuthConfigured(env));
 }
 
 export function isGoogleUserId(value: unknown): value is string {

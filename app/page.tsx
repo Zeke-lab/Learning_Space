@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const session = await getAppSession();
-  const storageKey = workspaceStorageKey(session?.user.id);
+  const storageKey = workspaceStorageKey(session?.user.workspaceId ?? session?.user.id);
   return <BookWorkspace key={storageKey} storageKey={storageKey} accountControls={
     <nav aria-label="Account" className="flex items-center gap-3">
       {session ? <>

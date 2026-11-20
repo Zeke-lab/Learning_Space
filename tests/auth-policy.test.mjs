@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { googleAuthConfigured, isGoogleUserId, safeAuthRedirect, signInErrorMessage, verifiedGoogleIdentity } from "../lib/auth-policy.ts";
+import { googleAuthConfigured, isGoogleUserId, safeAuthRedirect, sessionAuthConfigured, signInErrorMessage, verifiedGoogleIdentity } from "../lib/auth-policy.ts";
 import { workspaceStorageKey } from "../lib/workspace-storage.ts";
 
 test("requires a verified Google identity and stable subject, not just an email", () => {
@@ -38,6 +38,8 @@ test("configuration requires all credentials, a strong secret, and a safe origin
     assert.equal(googleAuthConfigured({ ...env, NEXTAUTH_URL: origin }), false);
   }
   assert.equal(googleAuthConfigured({ ...env, NEXTAUTH_SECRET: "short" }), false);
+  assert.equal(sessionAuthConfigured({ NEXTAUTH_SECRET: env.NEXTAUTH_SECRET, NEXTAUTH_URL: env.NEXTAUTH_URL }), true);
+  assert.equal(sessionAuthConfigured({ NEXTAUTH_SECRET: "short", NEXTAUTH_URL: env.NEXTAUTH_URL }), false);
 });
 
 test("guest and individual account workspaces never share storage keys", () => {
