@@ -4,7 +4,7 @@
 
 Reviewed: 20 November 2026
 
-**Development update:** This guide's workflows describe the deployed application. The current development branch additionally implements permanent account profiles, email/password signup, verification, recovery, and session revocation. Those changes are tested locally against Supabase but are not deployed. Email delivery needs a sender service; see [AUTH_SETUP.md](AUTH_SETUP.md). Cloud book saving remains pending.
+**Development update:** This guide's workflows describe the deployed application. The current development branch additionally implements permanent account profiles, email/password signup, verification, recovery, and session revocation. Those changes are tested locally against Supabase but are not deployed. Resend now delivers test verification/recovery emails to the owner; public sending needs an owned, verified domain. See [AUTH_SETUP.md](AUTH_SETUP.md). Cloud book saving remains pending.
 
 Learning Space turns a learning topic into a structured book. You create the outline first, generate chapters, then download the assembled book as Markdown or PDF. It supports Myanmar text, formatted tables, code examples, and diagrams.
 

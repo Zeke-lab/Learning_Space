@@ -3,6 +3,7 @@ import { accounts, authRateLimit, databaseAuthConfigured } from "@/lib/account-s
 import { emailConfigured } from "@/lib/auth-email";
 import { emailInput, passwordInput, registrationInput, tokenInput } from "@/lib/password-security";
 import { sessionAuthConfigured } from "@/lib/auth-policy";
+import { authEmailPolicy } from "@/lib/auth-email-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     }
     if (value.action === "signup" || value.action === "forgot" || value.action === "resend") {
       if (!emailConfigured()) return reply("Email delivery is being connected. Please use Google sign-in for now.", 503);
+      if (!authEmailPolicy(process.env).allows(value.email)) return reply("Email signup and recovery are currently limited to the registered test account. Please use Google sign-in for now.", 503);
       if (value.action === "signup") await accounts().register(value.name, value.email, value.password);
       else await accounts().requestEmail(value.email, value.action === "forgot" ? "reset_password" : "verify_email");
       return reply("If this address is eligible, an email with the next steps will arrive shortly. Check your spam folder too.");

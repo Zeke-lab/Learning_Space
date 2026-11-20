@@ -12,8 +12,9 @@ Checked items describe implemented work or the specific verification named. They
 - [x] Bind expiring single-use links to purpose/email/credential revision, require POST, and revoke prior sessions on password reset.
 - [x] Add shared authentication limits; install migration 003 with private grants in Supabase.
 - [x] Prepare Resend delivery with a timeout and generic responses; keep passwords/tokens out of logs.
-- [x] Pass 36 unit/lifecycle tests, 22 schema checks, lint, production build, 11 legacy HTTP checks and 8 hosted account HTTP checks; remove temporary hosted test accounts.
-- [ ] Configure email sender credentials/address and test delivery to real inboxes. The owner has no email service yet and requested preparation only.
+- [x] Pass 38 unit/lifecycle tests, 22 schema checks, lint, production build, 11 legacy HTTP checks and 8 hosted account HTTP checks; remove temporary hosted test accounts.
+- [x] Connect a sending-only Resend key locally, restrict the shared sender to the owner test recipient, and observe Delivered status for real verification/recovery emails. Verify/reset the temporary account and remove it afterward. Revoke/replace the initial unused key before sending.
+- [ ] Configure a verified custom sending domain to email other users. The Vercel `vercel.app` address is a shared website domain, not an owned email domain. Confirm inbox/spam placement with recipients.
 - [ ] Deploy these account changes with restricted database/email secrets; retest real Google callback and HTTPS behavior.
 
 The older production behavior and milestone checks below are retained for context. Implemented account flows above do not mean email delivery or deployment is complete.

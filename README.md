@@ -10,7 +10,7 @@ For a plain-language tour with workflow diagrams, read [APPLICATION_GUIDE.md](AP
 
 Status reviewed: 2026-11-20. See [TODO.md](TODO.md) for completed work, verification limits, and remaining tasks, and [PDF_EXPORT_CHANGES.md](PDF_EXPORT_CHANGES.md) for the PDF implementation and history.
 
-Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. This development branch adds permanent Supabase profiles, email/password signup, verification/recovery, password hashing, session revocation and authentication limits. Email sending still needs provider configuration, and these new account changes are not yet deployed. Books/PDFs are not synced across devices.
+Google OpenID Connect sign-in is deployed and verified with the registered owner; see [AUTH_SETUP.md](AUTH_SETUP.md). Google remains in External/Testing mode. This development branch adds permanent Supabase profiles, email/password signup, verification/recovery, password hashing, session revocation and authentication limits. Resend is connected locally and reports both real test emails delivered to the owner. Other recipients need an owned, verified sending domain. These account changes are not yet deployed. Books/PDFs are not synced across devices.
 
 ## Current features
 
